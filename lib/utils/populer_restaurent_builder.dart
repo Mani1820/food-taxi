@@ -1,9 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:food_taxi/models/hotals_model.dart';
 import 'package:food_taxi/screen/menu_list_screen.dart';
-
+import '../Provider/banner_provider.dart';
+import '../Provider/hotels_provider.dart';
 import '../constants/color_constant.dart';
 import '../constants/constants.dart';
 
@@ -15,13 +16,69 @@ class PopulerRestaurentBuilder extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final size = MediaQuery.of(context).size;
-    final hotal = dummyHotals[index];
+    final hotal = ref.watch(restaurantsListProvider)[index];
+    final isAcceptingOrder = ref.watch(isAcceptingOrderProvider);
 
     return InkWell(
       onTap: () {
+        if (!isAcceptingOrder) {
+          showDialog(
+            context: context,
+            builder: (context) => Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 20,
+                  children: [
+                    Text(
+                      'We are sorry',
+                      style: TextStyle(
+                        color: ColorConstant.primaryText,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: Constants.appFont,
+                      ),
+                    ),
+                    Text(
+                      Constants.arenotTakingOrders,
+                      style: TextStyle(
+                        color: ColorConstant.primaryText,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                        fontFamily: Constants.appFont,
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text(
+                            'OK',
+                            style: TextStyle(
+                              color: ColorConstant.primary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: Constants.appFont,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+          return;
+        }
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const MenuListScreen()),
+          MaterialPageRoute(builder: (context) => MenuListScreen(index: index)),
         );
       },
       child: Stack(
@@ -47,61 +104,35 @@ class PopulerRestaurentBuilder extends ConsumerWidget {
                   child: SizedBox(
                     height: size.height * 0.28,
                     width: size.width,
-                    child: Image.network(hotal.image, fit: BoxFit.cover),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        hotal.hotalName,
-                        style: const TextStyle(
-                          color: ColorConstant.primaryText,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: Constants.appFont,
+                    child: CachedNetworkImage(
+                      imageUrl: hotal.imagePath,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => const Center(
+                        child: CircularProgressIndicator(
+                          color: ColorConstant.primary,
                         ),
                       ),
-                      Container(
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: ColorConstant.greenColor,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              hotal.rating.toString(),
-                              style: const TextStyle(
-                                color: ColorConstant.whiteColor,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                fontFamily: Constants.appFont,
-                              ),
-                            ),
-                            const Icon(
-                              Icons.star,
-                              color: ColorConstant.whiteColor,
-                              size: 14,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                      errorWidget: (context, url, error) =>
+                          const Icon(Icons.error),
+                    ),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Text(
-                    hotal.location,
+                    hotal.name,
+                    style: const TextStyle(
+                      color: ColorConstant.primaryText,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: Constants.appFont,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Text(
+                    hotal.address,
                     style: const TextStyle(
                       color: ColorConstant.secondaryText,
                       fontSize: 12,
@@ -122,7 +153,7 @@ class PopulerRestaurentBuilder extends ConsumerWidget {
                         size: 13,
                       ),
                       Text(
-                        ' 30-40 mins | 12.8 km',
+                        ' 30-40 mins preparation time',
                         style: TextStyle(
                           color: ColorConstant.secondaryText,
                           fontSize: 12,
@@ -134,23 +165,6 @@ class PopulerRestaurentBuilder extends ConsumerWidget {
                   ),
                 ),
               ],
-            ),
-          ),
-          Container(
-            margin: const EdgeInsets.only(left: 20, top: 20),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: ColorConstant.fadedBlack,
-            ),
-            child: Text(
-              '${hotal.typeOfHotal} | ${hotal.typeOfFood}',
-              style: const TextStyle(
-                color: ColorConstant.whiteColor,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                fontFamily: Constants.appFont,
-              ),
             ),
           ),
         ],

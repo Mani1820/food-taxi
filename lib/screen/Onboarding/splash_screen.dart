@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:food_taxi/constants/color_constant.dart';
 import 'package:food_taxi/constants/constants.dart';
+import 'package:food_taxi/utils/sharedpreference_util.dart';
+
+import '../Tab/tab_screen.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -18,16 +21,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      if (!mounted) {
-        return;
-      }
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/IntroScreen',
-        (route) => false,
-      );
-    });
+    _checkLoginStatus();
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -41,6 +35,25 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
 
     _controller.forward();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    await Future.delayed(const Duration(seconds: 3));
+    final token = SharedpreferenceUtil.getString('token');
+    debugPrint('Token: $token');
+    if (token != null && token.isNotEmpty) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (ctx) => const TabScreen()),
+        (route) => false,
+      );
+    } else {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/IntroScreen',
+        (route) => false,
+      );
+    }
   }
 
   @override

@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-RestaurantResponse restaurantResponseFromJson(String str) => RestaurantResponse.fromJson(json.decode(str));
+SignupResponse signupResponseFromJson(String str) => SignupResponse.fromJson(json.decode(str));
 
-String restaurantResponseToJson(RestaurantResponse data) => json.encode(data.toJson());
+String signupResponseToJson(SignupResponse data) => json.encode(data.toJson());
 
-class RestaurantResponse {
+class SignupResponse {
     bool status;
     int httpCode;
     String httpMessage;
@@ -12,7 +12,7 @@ class RestaurantResponse {
     Data data;
     int responseTime;
 
-    RestaurantResponse({
+    SignupResponse({
         required this.status,
         required this.httpCode,
         required this.httpMessage,
@@ -21,7 +21,7 @@ class RestaurantResponse {
         required this.responseTime,
     });
 
-    factory RestaurantResponse.fromJson(Map<String, dynamic> json) => RestaurantResponse(
+    factory SignupResponse.fromJson(Map<String, dynamic> json) => SignupResponse(
         status: json["status"],
         httpCode: json["httpCode"],
         httpMessage: json["httpMessage"],
@@ -41,49 +41,45 @@ class RestaurantResponse {
 }
 
 class Data {
-    List<Restaurant> restaurants;
+    User user;
 
     Data({
-        required this.restaurants,
+        required this.user,
     });
 
     factory Data.fromJson(Map<String, dynamic> json) => Data(
-        restaurants: List<Restaurant>.from(json["restaurants"].map((x) => Restaurant.fromJson(x))),
+        user: User.fromJson(json["user"]),
     );
 
     Map<String, dynamic> toJson() => {
-        "restaurants": List<dynamic>.from(restaurants.map((x) => x.toJson())),
+        "user": user.toJson(),
     };
 }
 
-class Restaurant {
-    int id;
+class User {
+    int userId;
     String name;
-    String mobile;
-    String address;
-    String imagePath;
+    int mobile;
+    String token;
 
-    Restaurant({
-        required this.id,
+    User({
+        required this.userId,
         required this.name,
         required this.mobile,
-        required this.address,
-        required this.imagePath,
+        required this.token,
     });
 
-    factory Restaurant.fromJson(Map<String, dynamic> json) => Restaurant(
-        id: json["id"],
+    factory User.fromJson(Map<String, dynamic> json) => User(
+        userId: json["user_id"],
         name: json["name"],
         mobile: json["mobile"],
-        address: json["address"],
-        imagePath: json["image_path"],
+        token: json["token"],
     );
 
     Map<String, dynamic> toJson() => {
-        "id": id,
+        "user_id": userId,
         "name": name,
         "mobile": mobile,
-        "address": address,
-        "image_path": imagePath,
+        "token": token,
     };
 }

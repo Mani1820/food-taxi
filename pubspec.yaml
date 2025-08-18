@@ -46,6 +46,7 @@ dependencies:
   shimmer: ^3.0.0
   dotted_line: ^3.2.3
   carousel_slider: ^5.1.1
+  http: ^1.5.0
 
 dev_dependencies:
   flutter_test:

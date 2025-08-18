@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:food_taxi/Provider/hotels_provider.dart';
 import 'package:food_taxi/constants/color_constant.dart';
 import 'package:food_taxi/models/food_model.dart';
 import 'package:food_taxi/models/hotals_model.dart';
@@ -9,8 +11,8 @@ import '../Common/common_label.dart';
 import '../constants/constants.dart';
 
 class MenuListScreen extends ConsumerStatefulWidget {
-  const MenuListScreen({super.key});
-
+  const MenuListScreen({super.key, required this.index});
+  final int index;
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _MenuListScreenState();
 }
@@ -19,6 +21,7 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final hotel = ref.watch(restaurantsListProvider)[widget.index];
     return Scaffold(
       backgroundColor: ColorConstant.whiteColor,
       body: CustomScrollView(
@@ -44,7 +47,7 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
               decoration: BoxDecoration(
                 color: ColorConstant.whiteColor,
                 image: DecorationImage(
-                  image: NetworkImage(dummyHotals[0].image),
+                  image: NetworkImage(hotel.imagePath),
                   fit: BoxFit.cover,
                 ),
                 borderRadius: const BorderRadius.only(
@@ -53,69 +56,34 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
                 ),
               ),
               child: ListTile(
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        CommonLable(
-                          text: dummyHotals[0].hotalName,
-                          isIconAvailable: false,
+                title: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: const Color(0x775D5850),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CommonLable(
+                        text: hotel.name,
+                        isIconAvailable: false,
+                        color: ColorConstant.whiteColor,
+                      ),
+
+                      Text(
+                        hotel.address,
+                        style: TextStyle(
                           color: ColorConstant.whiteColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: Constants.appFont,
                         ),
-                        Container(
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: ColorConstant.greenColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              Text(
-                                dummyHotals[0].rating.toString(),
-                                style: const TextStyle(
-                                  color: ColorConstant.whiteColor,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  fontFamily: Constants.appFont,
-                                ),
-                              ),
-                              const Icon(
-                                Icons.star,
-                                color: ColorConstant.whiteColor,
-                                size: 14,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Text(
-                      '12.3 km | 30-40 mins',
-                      style: TextStyle(
-                        color: ColorConstant.whiteColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: Constants.appFont,
                       ),
-                    ),
-                    Text(
-                      dummyHotals[0].location,
-                      style: TextStyle(
-                        color: ColorConstant.whiteColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: Constants.appFont,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

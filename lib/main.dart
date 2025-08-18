@@ -4,8 +4,11 @@ import 'package:food_taxi/constants/constants.dart';
 import 'package:food_taxi/utils/routes.dart';
 
 import 'screen/Onboarding/splash_screen.dart';
+import 'utils/sharedpreference_util.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SharedpreferenceUtil.init();
   runApp(ProviderScope(child: const MyApp()));
 }
 

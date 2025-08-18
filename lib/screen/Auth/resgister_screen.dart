@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:food_taxi/Api/api_services.dart';
 import 'package:food_taxi/Common/common_button.dart';
 import 'package:food_taxi/Common/common_screen_heading.dart';
 import 'package:food_taxi/Common/common_textfields.dart';
+import 'package:food_taxi/Provider/loading_provider.dart';
 import 'package:food_taxi/constants/color_constant.dart';
 import 'package:food_taxi/constants/constants.dart';
+import 'package:food_taxi/screen/Auth/login_screen.dart';
 import 'package:food_taxi/screen/others/privacy_policy_screen.dart';
 import 'package:food_taxi/utils/form_validators.dart';
 
@@ -22,12 +25,6 @@ class ResgisterScreen extends ConsumerStatefulWidget {
 
 class _ResgisterScreenState extends ConsumerState<ResgisterScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  void onTapRegister() {
-    if (_formKey.currentState!.validate()) {
-      Navigator.pushNamedAndRemoveUntil(context, '/TabScreen', (_) => false);
-    }
-  }
 
   void onTapLogin() {
     Navigator.pushNamedAndRemoveUntil(context, '/LoginScreen', (_) => false);
@@ -49,18 +46,30 @@ class _ResgisterScreenState extends ConsumerState<ResgisterScreen> {
     return Scaffold(
       body: SafeArea(
         child: Center(
-          child: Form(
-            key: _formKey,
-            child: _buildForm(
-              isPasswordObscure,
-              isConfirmPasswordObscure,
-              email,
-              name,
-              address,
-              phoneNumber,
-              password,
-              confirmPassword,
-            ),
+          child: Stack(
+            children: [
+              Form(
+                key: _formKey,
+                child: _buildForm(
+                  isPasswordObscure,
+                  isConfirmPasswordObscure,
+                  email,
+                  name,
+                  address,
+                  phoneNumber,
+                  password,
+                  confirmPassword,
+                ),
+              ),
+              if (ref.watch(isLoadingProvider))
+                const Center(
+                  child: CircularProgressIndicator(
+                    color: ColorConstant.primary,
+                  ),
+                ),
+
+              const SizedBox.shrink(),
+            ],
           ),
         ),
       ),
@@ -166,7 +175,13 @@ class _ResgisterScreenState extends ConsumerState<ResgisterScreen> {
             title: Constants.registerButton,
             onPressed: isAccetpted
                 ? () {
-                    onTapRegister();
+                    register(
+                      name,
+                      int.parse(phoneNumber),
+                      password,
+                      confirmPassword,
+                      context,
+                    );
                   }
                 : () =>
                       customErrorSnackBar(Constants.pleseAcceptTerms, context),
@@ -276,5 +291,46 @@ class _ResgisterScreenState extends ConsumerState<ResgisterScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> register(
+    String name,
+    int phone,
+    String password,
+    String confirmPassword,
+    BuildContext context,
+  ) async {
+    ref.read(isLoadingProvider.notifier).state = true;
+    try {
+      final response = await ApiServices.register(
+        name,
+        phone,
+        password,
+        confirmPassword,
+      );
+
+      ref.read(isLoadingProvider.notifier).state = false;
+
+      if (response.status) {
+        if (!context.mounted) return;
+        ref.read(isTermsAccepted.notifier).state = false;
+        ref.read(registerNameProvider.notifier).state = '';
+        ref.read(registerPhoneNumberProvider.notifier).state = '';
+        ref.read(registerPasswordProvider.notifier).state = '';
+        ref.read(registerConfirmPasswordProvider.notifier).state = '';
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (ctx) => const LoginScreen()),
+          (route) => false,
+        );
+      } else {
+        customErrorSnackBar(response.customMessage, context);
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      ref.read(isLoadingProvider.notifier).state = false;
+      debugPrint('Error: $e');
+      customErrorSnackBar(e.toString(), context);
+    }
   }
 }

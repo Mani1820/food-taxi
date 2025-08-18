@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:food_taxi/constants/color_constant.dart';
 import 'package:food_taxi/constants/constants.dart';
-import 'package:food_taxi/screen/Auth/login_screen.dart';
+import 'package:food_taxi/screen/Auth/resgister_screen.dart';
 import 'package:gone_board/gone_board.dart';
 
 class IntroScreen extends ConsumerStatefulWidget {
@@ -20,7 +20,7 @@ class _IntroScreenState extends ConsumerState<IntroScreen> {
     return Scaffold(
       body: GoneBoard(
         pageController: pageController,
-        onFinishedPage: LoginScreen(),
+        onFinishedPage: ResgisterScreen(),
         activeDotColor: ColorConstant.primary,
         dotColor: ColorConstant.lightPrimary,
         textStyle: TextStyle(

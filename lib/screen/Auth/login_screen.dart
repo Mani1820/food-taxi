@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:food_taxi/Api/api_services.dart';
 import 'package:food_taxi/Common/common_button.dart';
 import 'package:food_taxi/Common/common_textfields.dart';
 import 'package:food_taxi/Provider/auth_provider.dart';
+import 'package:food_taxi/Provider/loading_provider.dart';
 import 'package:food_taxi/constants/color_constant.dart';
 import 'package:food_taxi/constants/constants.dart';
+import 'package:food_taxi/screen/Tab/tab_screen.dart';
 
 import '../../Provider/obscured_text_provider.dart';
 import '../../utils/form_validators.dart';
@@ -56,73 +59,86 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isObsucure = ref.watch(obscuredTextProvider);
+    final isLoading = ref.watch(isLoadingProvider);
 
     return Scaffold(
       backgroundColor: ColorConstant.whiteColor,
       body: SafeArea(
         child: Center(
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                spacing: 15,
-                children: [
-                  const SizedBox(height: 5),
-                  const Text(
-                    Constants.loginTitle,
-                    style: TextStyle(
-                      color: ColorConstant.primaryText,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: Constants.appFont,
-                    ),
+          child: Stack(
+            children: [
+              Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    spacing: 15,
+                    children: [
+                      const SizedBox(height: 5),
+                      const Text(
+                        Constants.loginTitle,
+                        style: TextStyle(
+                          color: ColorConstant.primaryText,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                          fontFamily: Constants.appFont,
+                        ),
+                      ),
+                      const Text(
+                        Constants.loginSubTitle,
+                        style: TextStyle(
+                          color: ColorConstant.secondaryText,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: Constants.appFont,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      CommonTextFields(
+                        hintText: Constants.loginHintEmail,
+                        validator: phoneNumberValidator,
+                        controller: _numberController,
+                        keyboardType: TextInputType.phone,
+                        onChanged: (val) =>
+                            ref.read(loginEmailProvider.notifier).state = val,
+                        obscureText: false,
+                      ),
+                      CommonTextFields(
+                        hintText: Constants.loginHintPassword,
+                        obscureText: isObsucure,
+                        validator: passwordValidator,
+                        controller: _passwordController,
+                        onChanged: (val) =>
+                            ref.read(loginPasswordProvider.notifier).state =
+                                val,
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            ref.read(obscuredTextProvider.notifier).state =
+                                !isObsucure;
+                          },
+                          icon: isObsucure
+                              ? const Icon(Icons.visibility_off)
+                              : const Icon(Icons.visibility),
+                        ),
+                      ),
+                      _buildForgotPassword(),
+                      CommonButton(
+                        title: Constants.loginButton,
+                        onPressed: login,
+                      ),
+                      SizedBox(height: 10),
+                      _buildDontHaveAccount(),
+                    ],
                   ),
-                  const Text(
-                    Constants.loginSubTitle,
-                    style: TextStyle(
-                      color: ColorConstant.secondaryText,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      fontFamily: Constants.appFont,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  CommonTextFields(
-                    hintText: Constants.loginHintEmail,
-                    validator: phoneNumberValidator,
-                    controller: _numberController,
-                    keyboardType: TextInputType.phone,
-                    onChanged: (val) =>
-                        ref.read(loginEmailProvider.notifier).state = val,
-                    obscureText: false,
-                  ),
-                  CommonTextFields(
-                    hintText: Constants.loginHintPassword,
-                    obscureText: isObsucure,
-                    validator: passwordValidator,
-                    controller: _passwordController,
-                    onChanged: (val) =>
-                        ref.read(loginPasswordProvider.notifier).state = val,
-                    suffixIcon: IconButton(
-                      onPressed: () {
-                        ref.read(obscuredTextProvider.notifier).state =
-                            !isObsucure;
-                      },
-                      icon: isObsucure
-                          ? const Icon(Icons.visibility_off)
-                          : const Icon(Icons.visibility),
-                    ),
-                  ),
-                  _buildForgotPassword(),
-                  CommonButton(
-                    title: Constants.loginButton,
-                    onPressed: onTapLogin,
-                  ),
-                  SizedBox(height: 10),
-                  _buildDontHaveAccount(),
-                ],
+                ),
               ),
-            ),
+              isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: ColorConstant.primary,
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ],
           ),
         ),
       ),
@@ -187,5 +203,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> login() async {
+    final mobile = _numberController.text.trim();
+    final password = _passwordController.text.trim();
+    ref.read(isLoadingProvider.notifier).state = true;
+
+    if (mobile.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+    try {
+      final response = await ApiServices.login(mobile, password);
+      if (!mounted) {
+        return;
+      }
+      if (response.status) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (ctx) => const TabScreen()),
+          (_) => false,
+        );
+      }
+      ref.read(isLoadingProvider.notifier).state = false;
+    } catch (e) {
+      ref.read(isLoadingProvider.notifier).state = false;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
+    }
   }
 }

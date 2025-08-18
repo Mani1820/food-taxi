@@ -141,10 +141,9 @@ class Constants {
   static const String starIcon = 'Assets/Images/fav_icon.png';
   static const String successImage = 'Assets/Images/thank_you.png';
 
-  //optionals
-  static const String banner1 = 'Assets/Images/banner_1.jpg';
-  static const String banner2 = 'Assets/Images/banner_2.jpg';
-  static const String banner3 = 'Assets/Images/banner_3.jpg';
-  static const String banner4 = 'Assets/Images/banner_4.jpg';
-  static const String banner5 = 'Assets/Images/banner_5.jpg';
+  //errors
+  static const String noInternet = "No Internet Connection";
+  static const String somethingWentWrong = "Something went wrong";
+  static const String serverError = "Server Error";
+  static const String arenotTakingOrders = "We aren't taking orders at the moment. Kindly please visit again later.";
 }
