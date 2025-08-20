@@ -234,6 +234,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
+    } finally {
+      ref.read(isLoadingProvider.notifier).state = false;
+      ref.read(loginEmailProvider.notifier).state = '';
+      ref.read(loginPasswordProvider.notifier).state = '';
+      ref.read(loginPhoneNumberProvider.notifier).state = '';
     }
   }
 }

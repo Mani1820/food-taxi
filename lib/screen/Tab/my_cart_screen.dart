@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:food_taxi/models/food_model.dart';
+import 'package:food_taxi/models/cartsummary.dart';
 import 'package:food_taxi/utils/checkout_container.dart';
 
+import '../../Api/api_services.dart';
 import '../../Common/common_label.dart';
 import '../../constants/color_constant.dart';
 import '../../constants/constants.dart';
@@ -141,6 +142,41 @@ void showModelSheet(BuildContext context) {
 
 class _MyCartScreenState extends ConsumerState<MyCartScreen> {
   @override
+  void initState() {
+    fetchCartSummary();
+    super.initState();
+  }
+
+  Future<void> fetchCartSummary() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await ApiServices.getCartSummary();
+      if (response.status) {
+        setState(() {
+          cartSummary = response.data.cartSummary.items;
+          grandTotal = response.data.cartSummary.grandTotal;
+          deliveryCharge = response.data.cartSummary.deliveryCharge;
+        });
+        debugPrint('Cart summary: ${cartSummary.length}');
+      } else {
+        throw Exception(Constants.somethingWentWrong);
+      }
+    } catch (e) {
+      debugPrint('Error fetching cart summary: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  List<Item> cartSummary = [];
+  int grandTotal = 0;
+  int deliveryCharge = 0;
+  bool isLoading = false;
+  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Scaffold(
@@ -160,69 +196,87 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen> {
             backgroundColor: ColorConstant.primary,
           ),
           SliverToBoxAdapter(child: SizedBox(height: size.height * 0.01)),
-          SliverList(
-            delegate: SliverChildBuilderDelegate((context, index) {
-              return Container(
-                padding: EdgeInsets.all(size.height * 0.02),
-                margin: EdgeInsets.only(
-                  left: size.width * 0.05,
-                  right: size.width * 0.05,
-                  bottom: size.height * 0.01,
-                ),
-                decoration: BoxDecoration(
-                  color: ColorConstant.whiteColor,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.grey,
-                      offset: Offset(0.0, 1.0),
-                      blurRadius: 6.0,
+          isLoading
+              ? SliverToBoxAdapter(
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      color: ColorConstant.primary,
                     ),
-                  ],
-                ),
-                child: Row(
-                  spacing: 10,
-                  children: [
-                    Container(
-                      height: size.height * 0.1,
-                      width: size.height * 0.11,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        image: DecorationImage(
-                          image: NetworkImage(dummyFoods[index].image),
-                          fit: BoxFit.cover,
-                        ),
+                  ),
+                )
+              : SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final cart = cartSummary[index];
+                    return Container(
+                      padding: EdgeInsets.all(size.height * 0.02),
+                      margin: EdgeInsets.only(
+                        left: size.width * 0.05,
+                        right: size.width * 0.05,
+                        bottom: size.height * 0.01,
                       ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      decoration: BoxDecoration(
+                        color: ColorConstant.whiteColor,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.grey,
+                            offset: Offset(0.0, 1.0),
+                            blurRadius: 6.0,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        spacing: 10,
                         children: [
+                          Container(
+                            height: size.height * 0.1,
+                            width: size.height * 0.11,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              image: DecorationImage(
+                                image: NetworkImage(cart.foodImage),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  cart.foodName,
+                                  style: TextStyle(
+                                    color: ColorConstant.primaryText,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: Constants.appFont,
+                                  ),
+                                ),
+                                Text(
+                                  cart.restaurantName,
+                                  style: TextStyle(
+                                    color: ColorConstant.secondaryText,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    fontFamily: Constants.appFont,
+                                  ),
+                                ),
+                                Text(
+                                  cart.price,
+                                  style: TextStyle(
+                                    color: ColorConstant.primary,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    fontFamily: Constants.appFont,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                           Text(
-                            dummyFoods[index].name,
+                            'x${cart.quantity.toString()}',
                             style: TextStyle(
                               color: ColorConstant.primaryText,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: Constants.appFont,
-                            ),
-                          ),
-                          Text(
-                            dummyFoods[index].description,
-                            textAlign: TextAlign.start,
-
-                            style: TextStyle(
-                              color: ColorConstant.secondaryText,
-                              fontSize: 10,
-                              overflow: TextOverflow.ellipsis,
-                              fontWeight: FontWeight.w500,
-                              fontFamily: Constants.appFont,
-                            ),
-                          ),
-                          Text(
-                            dummyFoods[index].price,
-                            style: TextStyle(
-                              color: ColorConstant.primary,
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
                               fontFamily: Constants.appFont,
@@ -230,30 +284,45 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen> {
                           ),
                         ],
                       ),
-                    ),
-                    Text(
-                      'X2',
-                      style: TextStyle(
-                        color: ColorConstant.primaryText,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: Constants.appFont,
-                      ),
-                    ),
-                  ],
+                    );
+                  }, childCount: cartSummary.length),
                 ),
-              );
-            }, childCount: 3),
-          ),
-          SliverToBoxAdapter(
-            child: CheckoutContainer(
-              onTap: () => onTapCheckout(
-                context,
-                Constants.confirmCheckout,
-                'Are you sure you want to checkout?',
-              ),
-            ),
-          ),
+          cartSummary.isEmpty
+              ? SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: size.height * 0.7,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'No items in cart!',
+                          style: TextStyle(
+                            color: ColorConstant.secondaryText,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: Constants.appFont,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : isLoading
+              ? SliverToBoxAdapter(
+                  child: const Center(child: SizedBox.shrink()),
+                )
+              : SliverToBoxAdapter(
+                  child: CheckoutContainer(
+                    onTap: () => onTapCheckout(
+                      context,
+                      Constants.confirmCheckout,
+                      'Are you sure you want to checkout?',
+                    ),
+                    items: cartSummary,
+                    grandTotal: grandTotal,
+                    deliveryCharges: deliveryCharge,
+                  ),
+                ),
           SliverToBoxAdapter(child: SizedBox(height: size.height * 0.09)),
         ],
       ),

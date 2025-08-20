@@ -61,3 +61,50 @@ String? phoneNumberValidator(String? phoneNumber) {
   }
   return null;
 }
+
+String? pincodeValidator(String? pincode) {
+  if (pincode == null || pincode.isEmpty) {
+    return 'Please enter your pincode';
+  }
+  final pincodeRegex = RegExp(r'^\d{6}$');
+  if (!pincodeRegex.hasMatch(pincode)) {
+    return 'Enter a valid pincode';
+  }
+  return null;
+}
+String? streetValidator(String? street) {
+  if (street == null || street.isEmpty) {
+    return 'Street is required';
+  }
+  if (street.length < 2) {
+    return 'Street must be at least 2 characters';
+  }
+  return null;
+}
+String? areaValidator(String? area) {
+  if (area == null || area.isEmpty) {
+    return 'Area is required';
+  }
+  if (area.length < 2) {
+    return 'Area must be at least 2 characters';
+  }
+  return null;
+}
+String? landmarkValidator(String? landmark) {
+  if (landmark == null || landmark.isEmpty) {
+    return 'Landmark is required';
+  }
+  if (landmark.length < 2) {
+    return 'Landmark must be at least 2 characters';
+  }
+  return null;
+}
+String? cityValidator(String? city) {
+  if (city == null || city.isEmpty) {
+    return 'City is required';
+  }
+  if (city.length < 2) {
+    return 'City must be at least 2 characters';
+  }
+  return null;
+}

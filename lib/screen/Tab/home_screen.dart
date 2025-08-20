@@ -4,13 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:food_taxi/Api/api_services.dart';
 import 'package:food_taxi/Provider/loading_provider.dart';
-
 import 'package:food_taxi/constants/color_constant.dart';
-import 'package:food_taxi/models/restaurant_model.dart';
 import 'package:food_taxi/utils/populer_restaurent_builder.dart';
 import 'package:food_taxi/utils/search_bar.dart';
 import 'package:food_taxi/utils/sharedpreference_util.dart';
-
 import '../../Common/common_label.dart';
 import '../../Provider/banner_provider.dart';
 import '../../Provider/hotels_provider.dart';
@@ -24,28 +21,36 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final String user = SharedpreferenceUtil.getString('userName') ?? '';
+  final String user = SharedpreferenceUtil.getString('userName')!;
   final searchController = TextEditingController();
+  final sliderController = CarouselSliderController();
 
   @override
   void initState() {
     super.initState();
-    _fetchRestaurants();
-    _fetchBanners();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
-  final sliderController = CarouselSliderController();
-  final List<Restaurant> restaurants = [];
+  Future<void> _loadData() async {
+    ref.read(isLoadingProvider.notifier).state = true;
+    await _fetchRestaurants();
+    await _fetchBanners();
+    ref.read(isLoadingProvider.notifier).state = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final restaurantsList = ref.watch(restaurantsListProvider);
     final banners = ref.watch(bannerProvider);
     final isLoading = ref.watch(isLoadingProvider);
+    final restaurants = ref.watch(restaurantsListProvider);
+
     return RefreshIndicator(
       onRefresh: () async {
-        _fetchRestaurants();
-        _fetchBanners();
+        await _fetchRestaurants();
+        await _fetchBanners();
       },
       child: Scaffold(
         backgroundColor: ColorConstant.whiteColor,
@@ -116,7 +121,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
             ),
-
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.only(left: 20, bottom: 20),
@@ -127,21 +131,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             isLoading
-                ? const SliverToBoxAdapter(
+                ? const SliverFillRemaining(
                     child: Center(
                       child: CircularProgressIndicator(
                         color: ColorConstant.primary,
                       ),
                     ),
                   )
-                : restaurantsList.isEmpty
-                ? const SliverToBoxAdapter(
+                : restaurants.isEmpty
+                ? const SliverFillRemaining(
                     child: Center(child: Text('No Restaurants Found')),
                   )
                 : SliverList.builder(
-                    itemCount: restaurantsList.length,
+                    itemCount: restaurants.length,
                     itemBuilder: (context, index) {
-                      return PopulerRestaurentBuilder(index: index);
+                      return PopulerRestaurentBuilder(
+                        index: index,
+                        restaurants: restaurants,
+                      );
                     },
                   ),
             const SliverToBoxAdapter(child: SizedBox(height: 80)),
@@ -152,9 +159,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _fetchRestaurants() async {
-    ref.read(isLoadingProvider.notifier).state = true;
     try {
-      final response = await ApiServices.getRestaurants();
+      final response = await ApiServices.getRestaurants(
+        searchResult: searchController.text,
+      );
       if (response.status) {
         ref.read(restaurantsListProvider.notifier).state =
             response.data.restaurants;
@@ -166,14 +174,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
     } catch (e) {
       debugPrint('Error fetching restaurants: $e');
-      ref.read(isLoadingProvider.notifier).state = false;
-    } finally {
-      ref.read(isLoadingProvider.notifier).state = false;
     }
   }
 
   Future<void> _fetchBanners() async {
-    ref.read(isLoadingProvider.notifier).state = true;
     try {
       final response = await ApiServices.getBanners();
       if (response.status) {
@@ -189,11 +193,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
     } catch (e) {
       debugPrint('Error fetching banners: $e');
-    } finally {
-      ref.read(isLoadingProvider.notifier).state = false;
     }
   }
-
 
   @override
   void dispose() {

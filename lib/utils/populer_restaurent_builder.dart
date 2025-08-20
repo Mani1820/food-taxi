@@ -4,19 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:food_taxi/screen/menu_list_screen.dart';
 import '../Provider/banner_provider.dart';
-import '../Provider/hotels_provider.dart';
 import '../constants/color_constant.dart';
 import '../constants/constants.dart';
+import '../models/restaurant_model.dart';
 
 class PopulerRestaurentBuilder extends ConsumerWidget {
-  const PopulerRestaurentBuilder({super.key, required this.index});
+  const PopulerRestaurentBuilder({super.key, required this.index, required this.restaurants});
 
   final int index;
+  final List<Restaurant> restaurants;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final size = MediaQuery.of(context).size;
-    final hotal = ref.watch(restaurantsListProvider)[index];
+    final hotal = restaurants[index];
     final isAcceptingOrder = ref.watch(isAcceptingOrderProvider);
 
     return InkWell(

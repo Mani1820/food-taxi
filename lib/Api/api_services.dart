@@ -2,12 +2,18 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:food_taxi/Api/api_headers.dart';
+import 'package:food_taxi/constants/constants.dart';
+import 'package:food_taxi/models/address_model.dart';
 import 'package:food_taxi/models/banner_model.dart';
+import 'package:food_taxi/models/cart_model.dart';
+import 'package:food_taxi/models/food_model.dart';
 import 'package:food_taxi/models/login_response_model.dart';
 import 'package:food_taxi/models/register_model.dart';
 import 'package:food_taxi/models/restaurant_model.dart';
 import 'package:food_taxi/utils/sharedpreference_util.dart';
 import 'package:http/http.dart' as http;
+
+import '../models/cartsummary.dart';
 
 class ApiServices {
   static Future<LoginResponse> login(String mobile, String password) async {
@@ -96,14 +102,39 @@ class ApiServices {
     }
   }
 
-  static Future<RestaurantResponse> getRestaurants() async {
+  static Future<RestaurantResponse> getRestaurants({
+    String? searchResult,
+  }) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/restaurants/list'),
+        Uri.parse(
+          '$baseUrl/restaurants/list/',
+        ).replace(queryParameters: {"search": searchResult ?? ''}),
         headers: authHeader,
       );
       if (response.statusCode == 200) {
         return restaurantResponseFromJson(response.body);
+      } else {
+        debugPrint('Error-------: ${response.reasonPhrase}');
+        debugPrint('Response: ${response.body}');
+        throw ('${response.reasonPhrase}');
+      }
+    } catch (e) {
+      debugPrint('Error-------: $e');
+      throw ('Something went wrong');
+    }
+  }
+
+  static Future<Foodresponse> getFoodList(int id) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          '$baseUrl/foods/list/',
+        ).replace(queryParameters: {"restaurant_id": id.toString()}),
+        headers: authHeader,
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return foodresponseFromJson(response.body);
       } else {
         debugPrint('Error-------: ${response.reasonPhrase}');
         debugPrint('Response: ${response.body}');
@@ -130,7 +161,90 @@ class ApiServices {
       }
     } catch (e) {
       debugPrint('Error-------: $e');
-      throw ('Something went wrong');
+      throw (Constants.somethingWentWrong);
+    }
+  }
+
+  static Future<AddressResponse> getorUpdateAddress({
+    required String street,
+    required String area,
+    required String landmark,
+    required String city,
+    required String pincode,
+  }) async {
+    final userId = SharedpreferenceUtil.getInt('userId');
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/address'),
+        headers: authHeader,
+        body: jsonEncode({
+          "user_id": userId,
+          "street": street,
+          "area": area,
+          "landmark": landmark,
+          "city": city,
+          "pincode": pincode,
+        }),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.body;
+        return addressResponseFromJson(body);
+      } else {
+        debugPrint('Error --- ${response.reasonPhrase}');
+        throw 'something went wrong';
+      }
+    } catch (e) {
+      debugPrint('Error--- $e');
+      throw 'Something went wrong';
+    }
+  }
+
+  static Future<CartResponse> getCartItems({
+    required int foodId,
+    required String actiion,
+  }) async {
+    final userId = SharedpreferenceUtil.getInt('userId');
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/cart'),
+        headers: authHeader,
+        body: jsonEncode({
+          "user_id": userId,
+          "food_id": foodId,
+          "action": actiion,
+        }),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return cartResponseFromJson(response.body);
+      } else {
+        debugPrint('Error --- ${response.reasonPhrase}');
+        throw 'something went wrong';
+      }
+    } catch (e) {
+      debugPrint('Error --- $e');
+      throw 'Something went wrong';
+    }
+  }
+
+  static Future<CartSummaryResponse> getCartSummary() async {
+    final userId = SharedpreferenceUtil.getInt('userId');
+    try {
+      final response = await http.get(
+        Uri.parse(
+          '$baseUrl/cart/summary',
+        ).replace(queryParameters: {"user_id": userId.toString()}),
+        headers: authHeader,
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint('------------${response.body.toString()}');
+        return cartSummaryResponseFromJson(response.body);
+      } else {
+        debugPrint('Error --- ${response.body.toString()}');
+        throw 'something went wrong';
+      }
+    } catch (e) {
+      debugPrint('Error --- $e');
+      throw 'Something went wrong';
     }
   }
 }

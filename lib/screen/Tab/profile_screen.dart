@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:food_taxi/Api/api_services.dart';
-import 'package:food_taxi/screen/Onboarding/splash_screen.dart';
+import 'package:food_taxi/Provider/auth_provider.dart';
 import 'package:food_taxi/screen/profile/about_us.dart';
+import 'package:food_taxi/utils/sharedpreference_util.dart';
 
 import '../../Common/common_label.dart';
 import '../../constants/color_constant.dart';
@@ -72,7 +73,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 MaterialPageRoute(builder: (context) => const AboutUs()),
               );
             }),
-            _buildProfiletile(Icons.logout, Constants.logout, () {}),
+            _buildProfiletile(Icons.logout, Constants.logout, onTapLogout),
           ],
         ),
       ),
@@ -80,62 +81,59 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void onTapLogout() {
-    showAboutDialog(
+    showDialog(
       context: context,
-      children: [
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 20,
-          children: [
-            Text(
-              'Are you sure want to logout?',
-              style: TextStyle(
-                color: ColorConstant.primaryText,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                fontFamily: Constants.appFont,
+      builder: (context) {
+        return AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 20,
+            children: [
+              Text(
+                'Are you sure want to logout?',
+                style: TextStyle(
+                  color: ColorConstant.primaryText,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: Constants.appFont,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            OutlinedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text(
+                'No',
+                style: TextStyle(
+                  color: ColorConstant.primaryText,
+                  fontFamily: Constants.appFont,
+                ),
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text(
-                    'No',
-                    style: TextStyle(
-                      color: ColorConstant.primaryText,
-                      fontFamily: Constants.appFont,
-                    ),
-                  ),
+            OutlinedButton(
+              onPressed: () async {
+                await logout();
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/SplashScreen',
+                  (_) => false,
+                );
+              },
+              child: const Text(
+                'Yes',
+                style: TextStyle(
+                  color: ColorConstant.primary,
+                  fontFamily: Constants.appFont,
                 ),
-                TextButton(
-                  onPressed: () async {
-                    await ApiServices.logout();
-                    if (!mounted) return;
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (ctx) => SplashScreen()),
-                      (_) => false,
-                    );
-                    Navigator.pop(context);
-                  },
-                  child: const Text(
-                    'Yes',
-                    style: TextStyle(
-                      color: ColorConstant.primary,
-                      fontFamily: Constants.appFont,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -159,5 +157,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> logout() async {
+    try {
+      await ApiServices.logout().then((value) {
+        ref.read(loginEmailProvider.notifier).state = '';
+        ref.read(loginPasswordProvider.notifier).state = '';
+        ref.read(loginPhoneNumberProvider.notifier).state = '';
+        SharedpreferenceUtil.clear();
+      });
+    } catch (e) {
+      debugPrint(' Error logging out: $e');
+    }
   }
 }

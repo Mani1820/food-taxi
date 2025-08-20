@@ -103,11 +103,11 @@ final List<FoodModel> dummyFoods = [
 ];
 
 
-FoodResponse foodResponseFromJson(String str) => FoodResponse.fromJson(json.decode(str));
+Foodresponse foodresponseFromJson(String str) => Foodresponse.fromJson(json.decode(str));
 
-String foodResponseToJson(FoodResponse data) => json.encode(data.toJson());
+String foodresponseToJson(Foodresponse data) => json.encode(data.toJson());
 
-class FoodResponse {
+class Foodresponse {
     bool status;
     int httpCode;
     String httpMessage;
@@ -115,7 +115,7 @@ class FoodResponse {
     Data data;
     int responseTime;
 
-    FoodResponse({
+    Foodresponse({
         required this.status,
         required this.httpCode,
         required this.httpMessage,
@@ -124,7 +124,7 @@ class FoodResponse {
         required this.responseTime,
     });
 
-    factory FoodResponse.fromJson(Map<String, dynamic> json) => FoodResponse(
+    factory Foodresponse.fromJson(Map<String, dynamic> json) => Foodresponse(
         status: json["status"],
         httpCode: json["httpCode"],
         httpMessage: json["httpMessage"],

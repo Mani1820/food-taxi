@@ -3,14 +3,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:food_taxi/Common/common_button.dart';
 import 'package:food_taxi/constants/constants.dart';
+import 'package:food_taxi/models/cartsummary.dart';
 import 'package:food_taxi/models/food_model.dart';
 
 import '../constants/color_constant.dart';
 
 class CheckoutContainer extends ConsumerStatefulWidget {
-  const CheckoutContainer({super.key, required this.onTap});
+  const CheckoutContainer({
+    super.key,
+    required this.onTap,
+    required this.items,
+    required this.grandTotal,
+    required this.deliveryCharges,
+  });
 
   final VoidCallback onTap;
+  final List<Item> items;
+  final int grandTotal;
+  final int deliveryCharges;
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -44,18 +54,20 @@ class _CheckoutContainerState extends ConsumerState<CheckoutContainer> {
               padding: const EdgeInsets.only(bottom: 5),
               child: _buildRow(
                 dummyFoods[index].name,
-                'X2',
-                (int.parse(dummyFoods[index].price) * 2).toString(),
+                widget.items[index].quantity.toString(),
+                (widget.items[index].price).toString().split('.')[0],
               ),
             ),
-            itemCount: 3,
+            itemCount: widget.items.length,
           ),
           DottedLine(dashColor: ColorConstant.secondaryText, dashLength: 5),
-          _buildRow2(Constants.gst, '18%', '150'),
+          _buildRow2(
+            Constants.deliveryCharges,
+            '',
+            widget.deliveryCharges.toString(),
+          ),
           DottedLine(dashColor: ColorConstant.secondaryText, dashLength: 5),
-          _buildRow2(Constants.deliveryCharges, '', '50'),
-          DottedLine(dashColor: ColorConstant.secondaryText, dashLength: 5),
-          _buildRow2(Constants.grandTotal, '', '1500'),
+          _buildRow2(Constants.grandTotal, '', widget.grandTotal.toString()),
           DottedLine(dashColor: ColorConstant.secondaryText, dashLength: 5),
           CommonButton(title: Constants.checkout, onPressed: widget.onTap),
         ],
@@ -73,7 +85,14 @@ class _CheckoutContainerState extends ConsumerState<CheckoutContainer> {
           flex: 2,
           child: Text(percent ?? '', style: _checkOutTitleStyle()),
         ),
-        Expanded(flex: 1, child: Text(amount, style: _checkOutTitleStyle())),
+        Expanded(
+          flex: 1,
+          child: Text(
+            '₹$amount',
+            style: _checkOutTitleStyle(),
+            textAlign: TextAlign.end,
+          ),
+        ),
       ],
     );
   }
@@ -83,8 +102,22 @@ class _CheckoutContainerState extends ConsumerState<CheckoutContainer> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Expanded(flex: 3, child: Text(name, style: _checkOutTitleStyle())),
-        Expanded(flex: 2, child: Text(quantity, style: _checkOutTitleStyle())),
-        Expanded(flex: 1, child: Text(price, style: _checkOutTitleStyle())),
+        Expanded(
+          flex: 2,
+          child: Text(
+            quantity,
+            style: _checkOutTitleStyle(),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        Expanded(
+          flex: 1,
+          child: Text(
+            '₹$price',
+            style: _checkOutTitleStyle(),
+            textAlign: TextAlign.end,
+          ),
+        ),
       ],
     );
   }
