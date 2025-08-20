@@ -1,51 +1,28 @@
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:food_taxi/models/order_history_model.dart';
 
 import '../constants/color_constant.dart';
 import '../constants/constants.dart';
-import '../models/my_orders_model.dart';
 
 class OrdersBuilder extends ConsumerWidget {
-  const OrdersBuilder({super.key, required this.index});
+  const OrdersBuilder({
+    super.key,
+    required this.index,
+    required this.orderedItems,
+    required this.orders,
+  });
 
   final int index;
+  final List<OrderedItems> orderedItems;
+  final List<Order> orders;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final size = MediaQuery.of(context).size;
-
-    String getOrderStatusText(OrderStatus status) {
-      switch (status) {
-        case OrderStatus.pending:
-          return 'Order Pending';
-        case OrderStatus.onTheWay:
-          return 'Order on the Way';
-        case OrderStatus.delivered:
-          return 'Order Delivered';
-      }
-    }
-
-    String getPaymentStatusText(OrderStatus status) {
-      switch (status) {
-        case OrderStatus.pending:
-        case OrderStatus.onTheWay:
-          return 'Pending';
-        case OrderStatus.delivered:
-          return 'Paid';
-      }
-    }
-
-    Color getPaymentColor(OrderStatus status) {
-      switch (status) {
-        case OrderStatus.pending:
-        case OrderStatus.onTheWay:
-          return ColorConstant.fadedPrimary;
-        case OrderStatus.delivered:
-          return ColorConstant.greenColor;
-      }
-    }
-
+    // final size = MediaQuery.of(context).size;
+    bool isDelivered = orders[index].status == 'Delivered';
+    bool isPaymentDone = orders[index].paymentStatus == 'Paid';
     return Container(
       padding: const EdgeInsets.all(10),
       margin: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
@@ -61,10 +38,9 @@ class OrdersBuilder extends ConsumerWidget {
         spacing: 4,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                getOrderStatusText(dummyOrders[index].status),
+                'Order is ${orders[index].status}',
                 style: const TextStyle(
                   color: ColorConstant.primaryText,
                   fontSize: 18,
@@ -72,8 +48,27 @@ class OrdersBuilder extends ConsumerWidget {
                   fontFamily: Constants.appFont,
                 ),
               ),
+              isDelivered
+                  ? isPaymentDone
+                        ? const Icon(
+                            Icons.check_circle_outline_outlined,
+                            color: ColorConstant.greenColor,
+                            size: 20,
+                          )
+                        : const Icon(
+                            Icons.check_circle_outline_outlined,
+                            color: ColorConstant.primary,
+                            size: 20,
+                          )
+                  : const Icon(
+                      Icons.pending_actions_rounded,
+                      color: ColorConstant.primary,
+                      size: 20,
+                    ),
+
+              Spacer(),
               Text(
-                dummyOrders[index].price,
+                '₹${orders[index].grandTotal}',
                 style: const TextStyle(
                   color: ColorConstant.primaryText,
                   fontSize: 17,
@@ -84,11 +79,10 @@ class OrdersBuilder extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 5),
-          // Date and Payment Status Row
           Row(
             children: [
               Text(
-                DateTime.now().toString().split(' ')[0],
+                orders[index].createdAt,
                 style: const TextStyle(
                   color: ColorConstant.secondaryText,
                   fontSize: 13,
@@ -97,12 +91,12 @@ class OrdersBuilder extends ConsumerWidget {
                 ),
               ),
               const Spacer(),
-              const Text(
+              Text(
                 'Cash',
                 style: TextStyle(
-                  color: ColorConstant.primaryText,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                  color: ColorConstant.secondaryText,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
                   fontFamily: Constants.appFont,
                 ),
               ),
@@ -114,11 +108,13 @@ class OrdersBuilder extends ConsumerWidget {
                 ),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: getPaymentColor(dummyOrders[index].status),
+                  color: isPaymentDone
+                      ? ColorConstant.greenColor
+                      : ColorConstant.lightPrimary,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  getPaymentStatusText(dummyOrders[index].status),
+                  orders[index].paymentStatus,
                   style: const TextStyle(
                     color: ColorConstant.whiteColor,
                     fontSize: 13,
@@ -132,48 +128,50 @@ class OrdersBuilder extends ConsumerWidget {
           const SizedBox(height: 5),
           const DottedLine(dashColor: ColorConstant.fadedBlack),
           const SizedBox(height: 5),
-          // Title, Hotel Name and Image Row
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${index + 1}. ${dummyOrders[index].title}',
-                      style: const TextStyle(
-                        color: ColorConstant.primaryText,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: Constants.appFont,
-                      ),
-                    ),
-                    Text(
-                      dummyOrders[index].hotalName,
-                      style: const TextStyle(
-                        color: ColorConstant.secondaryText,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: Constants.appFont,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                child: SizedBox(
-                  height: size.height * 0.2,
-                  width: size.width * 0.5,
-                  child: Image.network(
-                    dummyOrders[index].image,
-                    fit: BoxFit.cover,
+          Text(
+            'Order No: ${orders[index].orderNo}',
+            style: const TextStyle(
+              color: ColorConstant.secondaryText,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              fontFamily: Constants.appFont,
+            ),
+          ),
+          ListView.builder(
+            itemCount: orderedItems.length,
+            shrinkWrap: true,
+            itemBuilder: (context, index) => Row(
+              children: [
+                Text(
+                  '${index + 1}. ${orderedItems[index].name}',
+                  style: const TextStyle(
+                    color: ColorConstant.primaryText,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: Constants.appFont,
                   ),
                 ),
-              ),
-            ],
+                Text(
+                  ' x ${orderedItems[index].qty}',
+                  style: const TextStyle(
+                    color: ColorConstant.primaryText,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: Constants.appFont,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '₹${orderedItems[index].price}',
+                  style: const TextStyle(
+                    color: ColorConstant.primaryText,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: Constants.appFont,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

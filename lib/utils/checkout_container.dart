@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:food_taxi/Common/common_button.dart';
 import 'package:food_taxi/constants/constants.dart';
 import 'package:food_taxi/models/cartsummary.dart';
-import 'package:food_taxi/models/food_model.dart';
 
 import '../constants/color_constant.dart';
 
@@ -53,7 +52,7 @@ class _CheckoutContainerState extends ConsumerState<CheckoutContainer> {
             itemBuilder: (context, index) => Padding(
               padding: const EdgeInsets.only(bottom: 5),
               child: _buildRow(
-                dummyFoods[index].name,
+                widget.items[index].foodName,
                 widget.items[index].quantity.toString(),
                 (widget.items[index].price).toString().split('.')[0],
               ),

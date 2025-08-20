@@ -49,7 +49,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void onTapForgotPassword() {
-    Navigator.pushNamed(context, '/ForgotPasswordScreen');
+    Navigator.pushNamed(context, '/ResetPasswordScreen');
   }
 
   void onTapRegister() {

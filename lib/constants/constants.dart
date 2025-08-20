@@ -145,5 +145,6 @@ class Constants {
   static const String noInternet = "No Internet Connection";
   static const String somethingWentWrong = "Something went wrong";
   static const String serverError = "Server Error";
-  static const String arenotTakingOrders = "We aren't taking orders at the moment. Kindly please visit again later.";
+  static const String arenotTakingOrders =
+      "We aren't taking orders at the moment. Kindly please visit again later.";
 }

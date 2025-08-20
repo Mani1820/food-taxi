@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:food_taxi/models/order_history_model.dart';
 import 'package:food_taxi/utils/orders_builder.dart';
 
+import '../../Api/api_services.dart';
 import '../../constants/color_constant.dart';
 import '../../constants/constants.dart';
 
@@ -13,6 +15,14 @@ class MyOrdersScreen extends ConsumerStatefulWidget {
 }
 
 class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _fetchOrders();
+  }
+
+  List<Order> orders = [];
+  bool isloading = false;
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
@@ -30,15 +40,54 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen> {
             ),
           ),
         ),
-        SliverList(
-          delegate: SliverChildBuilderDelegate(childCount: 4, (context, index) {
-            return OrdersBuilder(index: index);
-          }),
+        SliverToBoxAdapter(
+          child: SizedBox(height: MediaQuery.of(context).size.height * 0.02),
         ),
+        isloading
+            ? SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    const Center(
+                      child: CircularProgressIndicator(
+                        color: ColorConstant.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  childCount: orders.length,
+                  (context, index) {
+                    return OrdersBuilder(
+                      index: index,
+                      orders: orders,
+                      orderedItems: orders[index].items,
+                    );
+                  },
+                ),
+              ),
         SliverToBoxAdapter(
           child: SizedBox(height: MediaQuery.of(context).size.height * 0.09),
         ),
       ],
     );
+  }
+
+  Future<void> _fetchOrders() async {
+    setState(() {
+      isloading = true;
+    });
+    try {
+      final response = await ApiServices.getOrderHistory();
+      setState(() {
+        orders = response.data.orders;
+        isloading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isloading = false;
+      });
+    }
   }
 }

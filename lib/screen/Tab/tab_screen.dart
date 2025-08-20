@@ -76,14 +76,13 @@ class _TabScreenState extends ConsumerState<TabScreen> {
     return PersistentTabView(
       context,
       controller: controller,
-
       screens: screens,
       items: navBarsItems,
       margin: EdgeInsets.only(bottom: 10),
       backgroundColor: Colors.white,
       handleAndroidBackButtonPress: true,
       resizeToAvoidBottomInset: true,
-      stateManagement: true,
+      stateManagement: false,
       animationSettings: NavBarAnimationSettings(
         screenTransitionAnimation: ScreenTransitionAnimationSettings(
           animateTabTransition: true,

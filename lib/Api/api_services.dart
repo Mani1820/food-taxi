@@ -8,6 +8,7 @@ import 'package:food_taxi/models/banner_model.dart';
 import 'package:food_taxi/models/cart_model.dart';
 import 'package:food_taxi/models/food_model.dart';
 import 'package:food_taxi/models/login_response_model.dart';
+import 'package:food_taxi/models/order_history_model.dart';
 import 'package:food_taxi/models/register_model.dart';
 import 'package:food_taxi/models/restaurant_model.dart';
 import 'package:food_taxi/utils/sharedpreference_util.dart';
@@ -236,7 +237,6 @@ class ApiServices {
         headers: authHeader,
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
-        debugPrint('------------${response.body.toString()}');
         return cartSummaryResponseFromJson(response.body);
       } else {
         debugPrint('Error --- ${response.body.toString()}');
@@ -244,6 +244,76 @@ class ApiServices {
       }
     } catch (e) {
       debugPrint('Error --- $e');
+      throw 'Something went wrong';
+    }
+  }
+
+  static Future<bool> placeOrder() async {
+    final userId = SharedpreferenceUtil.getInt('userId');
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/order/place'),
+        headers: authHeader,
+        body: jsonEncode({"user_id": userId}),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      } else {
+        debugPrint('Error --- ${response.body.toString()}');
+        throw 'something went wrong';
+      }
+    } catch (e) {
+      debugPrint('Error --- $e');
+      throw 'Something went wrong';
+    }
+  }
+
+  static Future<OrderHistoryResponse> getOrderHistory() async {
+    final userId = SharedpreferenceUtil.getInt('userId');
+    try {
+      final response = await http.get(
+        Uri.parse(
+          '$baseUrl/order/history',
+        ).replace(queryParameters: {"user_id": userId.toString()}),
+        headers: authHeader,
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return orderHistoryResponseFromJson(response.body);
+      } else {
+        debugPrint('Error --- ${response.body.toString()}');
+        throw 'something went wrong';
+      }
+    } catch (e) {
+      debugPrint('Error --- $e');
+      throw 'Something went wrong';
+    }
+  }
+
+  static Future<bool> updatePassword(
+    mobileNumber,
+    password,
+    confirmPassword,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/update-password'),
+        headers: authHeader,
+        body: jsonEncode({
+          "mobile": mobileNumber,
+          "password": password,
+          "confirm_password": confirmPassword,
+        }),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint('Password updated successfully');
+        return true;
+      } else {
+        debugPrint('Error-------: ${response.reasonPhrase}');
+        debugPrint('Response: ${response.body}');
+        throw ('${response.reasonPhrase}');
+      }
+    } catch (e) {
+      debugPrint('Error-------: $e');
       throw 'Something went wrong';
     }
   }
