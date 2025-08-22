@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:food_taxi/Api/api_services.dart';
 import 'package:food_taxi/Provider/auth_provider.dart';
 import 'package:food_taxi/screen/profile/about_us.dart';
+import 'package:food_taxi/screen/profile/contact_us_screen.dart';
 import 'package:food_taxi/utils/sharedpreference_util.dart';
 
 import '../../Common/common_label.dart';
@@ -44,7 +45,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
 
             Text(
-              Constants.hiThere,
+              SharedpreferenceUtil.getString('userName')!,
               style: TextStyle(
                 color: ColorConstant.primaryText,
                 fontSize: 18,
@@ -52,21 +53,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 fontFamily: Constants.appFont,
               ),
             ),
-            Text(
-              '+91 1234567890',
-              style: TextStyle(
-                color: ColorConstant.secondaryText,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                fontFamily: Constants.appFont,
-              ),
-            ),
+
             _buildProfiletile(Icons.location_on, Constants.manageAddress, () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (ctx) => const ManageAdreess()),
               );
             }),
-
+            _buildProfiletile(Icons.help, 'Contact us', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ContactUsScreen(),
+                ),
+              );
+            }),
             _buildProfiletile(Icons.info, Constants.aboutUs, () {
               Navigator.push(
                 context,

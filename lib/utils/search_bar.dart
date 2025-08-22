@@ -24,6 +24,7 @@ class _SearchBarsState extends ConsumerState<SearchBars> {
       child: SearchBar(
         controller: widget.controller,
         hintText: widget.hintText,
+        onChanged: (value) {},
         focusNode: FocusNode(canRequestFocus: true),
         elevation: WidgetStatePropertyAll(4),
         backgroundColor: WidgetStatePropertyAll(

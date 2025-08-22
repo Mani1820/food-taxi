@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:food_taxi/Provider/address_provider.dart';
+import 'package:food_taxi/Api/api_services.dart';
 import 'package:food_taxi/screen/profile/add_address.dart';
 
 import '../../Common/common_label.dart';
@@ -16,8 +16,19 @@ class ManageAdreess extends ConsumerStatefulWidget {
 
 class _ManageAdreessState extends ConsumerState<ManageAdreess> {
   @override
+  void initState() {
+    super.initState();
+    _fetchAddress();
+  }
+
+  String street = '';
+  String area = '';
+  String landmark = '';
+  String city = '';
+  String pincode = '';
+  @override
   Widget build(BuildContext context) {
-    bool isaddressAvaible = ref.watch(streetProvider) != '';
+    bool isaddressAvaible = street.isEmpty;
     return Scaffold(
       backgroundColor: ColorConstant.whiteColor,
       appBar: AppBar(
@@ -32,27 +43,28 @@ class _ManageAdreessState extends ConsumerState<ManageAdreess> {
       ),
       body: Column(
         children: [
-          SizedBox(height: 20),
-          InkWell(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (ctx) => AddAddress()),
-                  );
-                },
+          SizedBox(height: 10),
+          Visibility(
+            visible: isaddressAvaible,
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (ctx) => AddAddress()),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Card(
                   color: ColorConstant.whiteColor,
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: Row(
                       children: [
                         Icon(Icons.add, color: ColorConstant.primary),
                         SizedBox(width: 10),
                         Text(
-                          isaddressAvaible ? 'Update Address' : 'Add Address',
+                          'Add Address',
                           style: TextStyle(
                             color: ColorConstant.primaryText,
                             fontSize: 18,
@@ -68,7 +80,7 @@ class _ManageAdreessState extends ConsumerState<ManageAdreess> {
             ),
           ),
           SizedBox(height: 20),
-          isaddressAvaible
+          !isaddressAvaible
               ? Card(
                   color: ColorConstant.whiteColor,
                   child: Container(
@@ -88,7 +100,7 @@ class _ManageAdreessState extends ConsumerState<ManageAdreess> {
                         ),
                         SizedBox(height: 10),
                         Text(
-                          '${ref.watch(streetProvider)},',
+                          '$street,',
                           style: TextStyle(
                             color: ColorConstant.primaryText,
                             fontSize: 16,
@@ -97,7 +109,7 @@ class _ManageAdreessState extends ConsumerState<ManageAdreess> {
                           ),
                         ),
                         Text(
-                          '${ref.watch(areaProvider)},',
+                          '$area,',
                           style: TextStyle(
                             color: ColorConstant.primaryText,
                             fontSize: 16,
@@ -106,7 +118,7 @@ class _ManageAdreessState extends ConsumerState<ManageAdreess> {
                           ),
                         ),
                         Text(
-                          '${ref.watch(landmarkProvider)},',
+                          '$landmark,',
                           style: TextStyle(
                             color: ColorConstant.primaryText,
                             fontSize: 16,
@@ -115,7 +127,7 @@ class _ManageAdreessState extends ConsumerState<ManageAdreess> {
                           ),
                         ),
                         Text(
-                          '${ref.watch(cityProvider)},',
+                          '$city,',
                           style: TextStyle(
                             color: ColorConstant.primaryText,
                             fontSize: 16,
@@ -124,7 +136,7 @@ class _ManageAdreessState extends ConsumerState<ManageAdreess> {
                           ),
                         ),
                         Text(
-                          ref.watch(pincodeProvider),
+                          pincode,
                           style: TextStyle(
                             color: ColorConstant.primaryText,
                             fontSize: 16,
@@ -145,8 +157,60 @@ class _ManageAdreessState extends ConsumerState<ManageAdreess> {
                     fontFamily: Constants.appFont,
                   ),
                 ),
+          SizedBox(height: 20),
+          Visibility(
+            visible: !isaddressAvaible,
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (ctx) => AddAddress()),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Card(
+                  color: ColorConstant.whiteColor,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.add, color: ColorConstant.primary),
+                        SizedBox(width: 10),
+                        Text(
+                          'Update Address',
+                          style: TextStyle(
+                            color: ColorConstant.primaryText,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: Constants.appFont,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _fetchAddress() async {
+    try {
+      final response = await ApiServices.getAddress();
+      final address = response.data.address;
+      setState(() {
+        street = address.street;
+        area = address.area;
+        landmark = address.landmark;
+        city = address.city;
+        pincode = address.pincode;
+      });
+    } catch (e) {
+      debugPrint('Error fetching address: $e');
+    }
   }
 }

@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:food_taxi/constants/color_constant.dart';
 import 'package:food_taxi/constants/constants.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 import '../../Common/common_label.dart';
-import '../others/privacy_policy_screen.dart';
 
 class AboutUs extends ConsumerWidget {
   const AboutUs({super.key});
@@ -59,12 +58,7 @@ class AboutUs extends ConsumerWidget {
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const PrivacyPolicyScreen(),
-                    ),
-                  );
+                  _launchURL('https://foodtaxi.digilyza.com/privacy-policy');
                 },
                 child: const Text(
                   "Privacy Policy",
@@ -81,5 +75,18 @@ class AboutUs extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+Future<void> _launchURL(String url) async {
+  final Uri uri = Uri.parse(url);
+  try {
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+    } else {
+      throw 'Could not launch $url';
+    }
+  } catch (e) {
+    debugPrint('Error launching URL: $e');
   }
 }

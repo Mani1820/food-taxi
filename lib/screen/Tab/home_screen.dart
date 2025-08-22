@@ -3,10 +3,10 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:food_taxi/Api/api_services.dart';
+import 'package:food_taxi/Common/common_textfields.dart';
 import 'package:food_taxi/Provider/loading_provider.dart';
 import 'package:food_taxi/constants/color_constant.dart';
 import 'package:food_taxi/utils/populer_restaurent_builder.dart';
-import 'package:food_taxi/utils/search_bar.dart';
 import 'package:food_taxi/utils/sharedpreference_util.dart';
 import '../../Common/common_label.dart';
 import '../../Provider/banner_provider.dart';
@@ -52,107 +52,121 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         await _fetchRestaurants();
         await _fetchBanners();
       },
-      child: Scaffold(
-        backgroundColor: ColorConstant.whiteColor,
-        body: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          shrinkWrap: true,
-          slivers: [
-            SliverAppBar(
-              pinned: true,
-              title: CommonLable(
-                text: '${Constants.welcome}$user!',
-                isIconAvailable: false,
-                color: ColorConstant.whiteColor,
-              ),
-              backgroundColor: ColorConstant.primary,
-              actions: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: ColorConstant.primary,
-                  child: Image.asset(Constants.logoBlack, width: 40),
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Scaffold(
+          backgroundColor: ColorConstant.whiteColor,
+          body: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            shrinkWrap: true,
+            slivers: [
+              SliverAppBar(
+                pinned: true,
+                title: CommonLable(
+                  text: '${Constants.welcome}$user!',
+                  isIconAvailable: false,
+                  color: ColorConstant.whiteColor,
                 ),
-              ],
-            ),
-            SliverToBoxAdapter(
-              child: SearchBars(
-                controller: searchController,
-                hintText: Constants.searchRestaurants,
+                backgroundColor: ColorConstant.primary,
+                actions: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: ColorConstant.primary,
+                    child: Image.asset(Constants.logoBlack, width: 40),
+                  ),
+                ],
               ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: CarouselSlider(
-                  items: List.generate(
-                    banners.length,
-                    (index) => Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 15,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: CachedNetworkImage(
-                          imageUrl: banners[index],
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => const Center(
-                            child: CircularProgressIndicator(
-                              color: ColorConstant.primary,
+              SliverToBoxAdapter(
+                child: FocusScope(
+                  child: CommonTextFields(
+                    hintText: Constants.searchRestaurants,
+                    obscureText: false,
+                    controller: searchController,
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: ColorConstant.hintText,
+                    ),
+                    onChanged: (value) {
+                      _fetchRestaurants();
+                    },
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: CarouselSlider(
+                    items: List.generate(
+                      banners.length,
+                      (index) => Container(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: CachedNetworkImage(
+                            imageUrl: banners[index],
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => const Center(
+                              child: CircularProgressIndicator(
+                                color: ColorConstant.primary,
+                              ),
                             ),
+                            errorWidget: (context, url, error) =>
+                                const Icon(Icons.error),
                           ),
-                          errorWidget: (context, url, error) =>
-                              const Icon(Icons.error),
                         ),
                       ),
                     ),
-                  ),
-                  carouselController: sliderController,
-                  options: CarouselOptions(
-                    height: size.height * 0.2,
-                    autoPlay: true,
-                    enlargeCenterPage: false,
-                    viewportFraction: 0.7,
-                    initialPage: 2,
-                  ),
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20, bottom: 20),
-                child: CommonLable(
-                  text: Constants.populerRestaurants,
-                  isIconAvailable: false,
-                ),
-              ),
-            ),
-            isLoading
-                ? const SliverFillRemaining(
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: ColorConstant.primary,
-                      ),
+                    carouselController: sliderController,
+                    options: CarouselOptions(
+                      height: size.height * 0.2,
+                      autoPlay: true,
+                      enlargeCenterPage: false,
+                      viewportFraction: 0.7,
+                      initialPage: 2,
                     ),
-                  )
-                : restaurants.isEmpty
-                ? const SliverFillRemaining(
-                    child: Center(child: Text('No Restaurants Found')),
-                  )
-                : SliverList.builder(
-                    itemCount: restaurants.length,
-                    itemBuilder: (context, index) {
-                      return PopulerRestaurentBuilder(
-                        index: index,
-                        restaurants: restaurants,
-                      );
-                    },
                   ),
-            const SliverToBoxAdapter(child: SizedBox(height: 80)),
-          ],
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 20, bottom: 20),
+                  child: CommonLable(
+                    text: Constants.populerRestaurants,
+                    isIconAvailable: false,
+                  ),
+                ),
+              ),
+              isLoading
+                  ? const SliverFillRemaining(
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: ColorConstant.primary,
+                        ),
+                      ),
+                    )
+                  : restaurants.isEmpty
+                  ? const SliverFillRemaining(
+                      child: Center(child: Text('No Restaurants Found')),
+                    )
+                  : SliverList.builder(
+                      itemCount: restaurants.length,
+                      itemBuilder: (context, index) {
+                        return PopulerRestaurentBuilder(
+                          index: index,
+                          restaurants: restaurants,
+                        );
+                      },
+                    ),
+              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+            ],
+          ),
         ),
       ),
     );

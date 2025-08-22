@@ -134,8 +134,8 @@ class Constants {
   static const String appLogoImage = 'Assets/Images/app_logo.jpg';
   static const String splashImage = 'Assets/Images/splash_bg.png';
   static const String pageView1 = 'Assets/Images/page_view_1.png';
-  static const String pageView2 = 'Assets/Images/page_view_2.png';
-  static const String pageView3 = 'Assets/Images/page_view_3.png';
+  static const String pageView2 = 'Assets/Images/page_view_2.jpg';
+  static const String pageView3 = 'Assets/Images/page_view_3.jpg';
   static const String logoBlack = 'Assets/Images/logo_black.png';
   static const String logoorange = 'Assets/Images/logo_orange.png';
   static const String starIcon = 'Assets/Images/fav_icon.png';

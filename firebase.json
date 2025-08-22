@@ -1,0 +1,22 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "food-taxi93",
+          "appId": "1:289991384896:android:f0327f53d512d597c724a5",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "food-taxi93",
+          "configurations": {
+            "android": "1:289991384896:android:f0327f53d512d597c724a5",
+            "ios": "1:289991384896:ios:e95502a3f7a23d1ec724a5"
+          }
+        }
+      }
+    }
+  }
+}

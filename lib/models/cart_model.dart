@@ -63,8 +63,6 @@ class Cart {
     int foodId;
     int quantity;
     String price;
-    DateTime createdAt;
-    DateTime updatedAt;
 
     Cart({
         required this.id,
@@ -72,8 +70,6 @@ class Cart {
         required this.foodId,
         required this.quantity,
         required this.price,
-        required this.createdAt,
-        required this.updatedAt,
     });
 
     factory Cart.fromJson(Map<String, dynamic> json) => Cart(
@@ -82,8 +78,6 @@ class Cart {
         foodId: json["food_id"],
         quantity: json["quantity"],
         price: json["price"],
-        createdAt: DateTime.parse(json["created_at"]),
-        updatedAt: DateTime.parse(json["updated_at"]),
     );
 
     Map<String, dynamic> toJson() => {
@@ -92,7 +86,5 @@ class Cart {
         "food_id": foodId,
         "quantity": quantity,
         "price": price,
-        "created_at": createdAt.toIso8601String(),
-        "updated_at": updatedAt.toIso8601String(),
     };
 }

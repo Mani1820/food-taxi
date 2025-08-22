@@ -21,7 +21,7 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen> {
     _fetchOrders();
   }
 
-  List<Order> orders = [];
+  List<Orders> orders = [];
   bool isloading = false;
   @override
   Widget build(BuildContext context) {
@@ -59,11 +59,7 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen> {
                 delegate: SliverChildBuilderDelegate(
                   childCount: orders.length,
                   (context, index) {
-                    return OrdersBuilder(
-                      index: index,
-                      orders: orders,
-                      orderedItems: orders[index].items,
-                    );
+                    return OrdersBuilder(index: index, orders: orders);
                   },
                 ),
               ),

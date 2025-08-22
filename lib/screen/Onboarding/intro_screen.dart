@@ -28,6 +28,7 @@ class _IntroScreenState extends State<IntroScreen> {
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
     return Scaffold(
+      backgroundColor: ColorConstant.whiteColor,
       body: Stack(
         alignment: Alignment.center,
         children: [
@@ -156,19 +157,19 @@ final List<IntroScreenModel> introScreenData = [
   IntroScreenModel(
     title: 'Order Your Favorite Meals',
     description:
-        'Food Taxi lets you explore and order from a wide\nrange of restaurants near you. Delicious meals\nare just a tap away!',
+        'Food Taxi lets you explore and order from a wide range of restaurants near you. Delicious meals are just a tap away!',
     imagePath: Constants.pageView1,
   ),
   IntroScreenModel(
     title: 'Fast & Reliable Delivery',
     description:
-        'Get your food delivered hot and fresh, right\nto your doorstep. With real-time tracking,\nyou’ll know exactly when it arrives!',
+        'Get your food delivered hot and fresh, right to your doorstep. With real-time tracking, you’ll know exactly when it arrives!',
     imagePath: Constants.pageView2,
   ),
   IntroScreenModel(
     title: 'Tasty Food, Happy Moments',
     description:
-        'Enjoy hassle-free food ordering with\nexclusive offers and discounts. Make every\nmeal more special with Food Taxi!',
+        'Enjoy hassle-free food ordering with exclusive offers and discounts. Make every meal more special with Food Taxi!',
     imagePath: Constants.pageView3,
   ),
 ];

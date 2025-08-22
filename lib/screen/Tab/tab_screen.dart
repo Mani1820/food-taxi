@@ -79,6 +79,7 @@ class _TabScreenState extends ConsumerState<TabScreen> {
       screens: screens,
       items: navBarsItems,
       margin: EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(top: 10),
       backgroundColor: Colors.white,
       handleAndroidBackButtonPress: true,
       resizeToAvoidBottomInset: true,

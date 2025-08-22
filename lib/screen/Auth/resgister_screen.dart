@@ -8,8 +8,8 @@ import 'package:food_taxi/Provider/loading_provider.dart';
 import 'package:food_taxi/constants/color_constant.dart';
 import 'package:food_taxi/constants/constants.dart';
 import 'package:food_taxi/screen/Auth/login_screen.dart';
-import 'package:food_taxi/screen/others/privacy_policy_screen.dart';
 import 'package:food_taxi/utils/form_validators.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../Common/common_error_snackbar.dart';
 import '../../Provider/auth_provider.dart';
@@ -226,11 +226,8 @@ class _ResgisterScreenState extends ConsumerState<ResgisterScreen> {
                   WidgetSpan(
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (ctx) => PrivacyPolicyScreen(),
-                          ),
+                        _launchURL(
+                          'https://foodtaxi.digilyza.com/privacy-policy',
                         );
                       },
                       child: Text(
@@ -332,5 +329,14 @@ class _ResgisterScreenState extends ConsumerState<ResgisterScreen> {
       debugPrint('Error: $e');
       customErrorSnackBar(e.toString(), context);
     }
+  }
+}
+
+Future<void> _launchURL(String url) async {
+  final Uri uri = Uri.parse(url);
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+  } else {
+    throw 'Could not launch $url';
   }
 }

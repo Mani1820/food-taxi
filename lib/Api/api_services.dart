@@ -7,6 +7,7 @@ import 'package:food_taxi/models/address_model.dart';
 import 'package:food_taxi/models/banner_model.dart';
 import 'package:food_taxi/models/cart_model.dart';
 import 'package:food_taxi/models/food_model.dart';
+import 'package:food_taxi/models/get_address.dart';
 import 'package:food_taxi/models/login_response_model.dart';
 import 'package:food_taxi/models/order_history_model.dart';
 import 'package:food_taxi/models/register_model.dart';
@@ -15,13 +16,19 @@ import 'package:food_taxi/utils/sharedpreference_util.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/cartsummary.dart';
+import '../models/order_details_model.dart';
 
 class ApiServices {
   static Future<LoginResponse> login(String mobile, String password) async {
+    final fcmToken = SharedpreferenceUtil.getString('fcm_token');
     final response = await http.post(
       Uri.parse('$baseUrl/login'),
       headers: apiheader,
-      body: jsonEncode({"mobile": mobile, "password": password}),
+      body: jsonEncode({
+        "mobile": mobile,
+        "password": password,
+        "fcm_token": fcmToken,
+      }),
     );
 
     final decoded = jsonDecode(response.body);
@@ -307,6 +314,51 @@ class ApiServices {
       if (response.statusCode == 200 || response.statusCode == 201) {
         debugPrint('Password updated successfully');
         return true;
+      } else {
+        debugPrint('Error-------: ${response.reasonPhrase}');
+        debugPrint('Response: ${response.body}');
+        throw ('${response.reasonPhrase}');
+      }
+    } catch (e) {
+      debugPrint('Error-------: $e');
+      throw 'Something went wrong';
+    }
+  }
+
+  static Future<Historyresponse> getAddress() async {
+    final userId = SharedpreferenceUtil.getInt('userId');
+    try {
+      final response = await http.get(
+        Uri.parse(
+          '$baseUrl/get/address',
+        ).replace(queryParameters: {"user_id": userId.toString()}),
+        headers: authHeader,
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return historyresponseFromJson(response.body);
+      } else {
+        debugPrint('Error-------: ${response.reasonPhrase}');
+        debugPrint('Response: ${response.body}');
+        throw ('${response.reasonPhrase}');
+      }
+    } catch (e) {
+      debugPrint('Error-------: $e');
+      throw 'Something went wrong';
+    }
+  }
+
+  static Future<Orderdetailsresponse> getOrderDetails(String orderId) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          '$baseUrl/order/detail',
+        ).replace(queryParameters: {"order_id": orderId.toString()}),
+        headers: authHeader,
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint('Order details fetched successfully');
+        debugPrint('Response: ${response.body.toString()}');
+        return orderdetailsresponseFromJson(response.body);
       } else {
         debugPrint('Error-------: ${response.reasonPhrase}');
         debugPrint('Response: ${response.body}');
