@@ -5,6 +5,7 @@ import 'package:food_taxi/Common/common_button.dart';
 import 'package:food_taxi/constants/constants.dart';
 import 'package:food_taxi/models/cartsummary.dart';
 
+import '../Provider/banner_provider.dart';
 import '../constants/color_constant.dart';
 
 class CheckoutContainer extends ConsumerStatefulWidget {
@@ -29,6 +30,7 @@ class CheckoutContainer extends ConsumerStatefulWidget {
 class _CheckoutContainerState extends ConsumerState<CheckoutContainer> {
   @override
   Widget build(BuildContext context) {
+    final isAcceptingOrder = ref.watch(isAcceptingOrderProvider);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -68,7 +70,10 @@ class _CheckoutContainerState extends ConsumerState<CheckoutContainer> {
           DottedLine(dashColor: ColorConstant.secondaryText, dashLength: 5),
           _buildRow2(Constants.grandTotal, '', widget.grandTotal.toString()),
           DottedLine(dashColor: ColorConstant.secondaryText, dashLength: 5),
-          CommonButton(title: Constants.checkout, onPressed: widget.onTap),
+          CommonButton(
+            title: Constants.checkout,
+            onPressed: isAcceptingOrder == true ? widget.onTap : _showPopup,
+          ),
         ],
       ),
     );
@@ -127,6 +132,45 @@ class _CheckoutContainerState extends ConsumerState<CheckoutContainer> {
       fontSize: 14,
       fontWeight: FontWeight.w500,
       fontFamily: Constants.appFont,
+    );
+  }
+
+  void _showPopup() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Order Unavailable',
+            style: TextStyle(
+              fontFamily: Constants.appFont,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          content: const Text(
+            'We are not accepting orders now. please visit us later!',
+            style: TextStyle(
+              fontFamily: Constants.appFont,
+              color: ColorConstant.fadedBlack,
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  fontFamily: Constants.appFont,
+                  color: ColorConstant.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

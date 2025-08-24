@@ -98,44 +98,49 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: CarouselSlider(
-                    items: List.generate(
-                      banners.length,
-                      (index) => Container(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 15,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: CachedNetworkImage(
-                            imageUrl: banners[index],
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => const Center(
-                              child: CircularProgressIndicator(
-                                color: ColorConstant.primary,
+                child: FutureBuilder(
+                  future: _fetchBanners(),
+                  builder: (context, snapshot) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: CarouselSlider(
+                        items: List.generate(
+                          banners.length,
+                          (index) => Container(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 15,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: CachedNetworkImage(
+                                imageUrl: banners[index],
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => const Center(
+                                  child: CircularProgressIndicator(
+                                    color: ColorConstant.primary,
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.error),
                               ),
                             ),
-                            errorWidget: (context, url, error) =>
-                                const Icon(Icons.error),
                           ),
                         ),
+                        carouselController: sliderController,
+                        options: CarouselOptions(
+                          height: size.height * 0.2,
+                          autoPlay: true,
+                          enlargeCenterPage: false,
+                          viewportFraction: 0.7,
+                          initialPage: 2,
+                        ),
                       ),
-                    ),
-                    carouselController: sliderController,
-                    options: CarouselOptions(
-                      height: size.height * 0.2,
-                      autoPlay: true,
-                      enlargeCenterPage: false,
-                      viewportFraction: 0.7,
-                      initialPage: 2,
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ),
               SliverToBoxAdapter(
