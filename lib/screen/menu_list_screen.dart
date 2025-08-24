@@ -2,9 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:food_taxi/Provider/cartList_provider.dart';
 import 'package:food_taxi/Provider/loading_provider.dart';
-import 'package:food_taxi/models/cartsummary.dart';
 import 'package:food_taxi/screen/Tab/tab_screen.dart';
 
 import '../Api/api_services.dart';
@@ -31,206 +29,200 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
     fetchCartSummary();
   }
 
-  List<Item> cartItems = [];
+  int totalitems = 0;
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final hotel = ref.watch(restaurantsListProvider)[widget.index];
     final foodList = ref.watch(foodListProvider);
-    final foodQuantity = ref.watch(foodQuantityProvider);
     return Scaffold(
       backgroundColor: ColorConstant.whiteColor,
 
       body: Stack(
         children: [
-          CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            shrinkWrap: true,
-            primary: true,
-            slivers: [
-              SliverAppBar(
-                pinned: true,
-                title: CommonLable(
-                  text: Constants.menuList,
-                  isIconAvailable: false,
-                  color: ColorConstant.whiteColor,
-                ),
-                backgroundColor: ColorConstant.primary,
-                iconTheme: IconThemeData(color: ColorConstant.whiteColor),
-              ),
-              SliverToBoxAdapter(
-                child: Container(
-                  height: 250,
-                  alignment: Alignment.bottomCenter,
-                  margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
+          RefreshIndicator(
+            color: ColorConstant.primary,
+            onRefresh: () async {
+              await _fetchFoodList();
+              await fetchCartSummary();
+            },
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              shrinkWrap: true,
+              primary: true,
+              slivers: [
+                SliverAppBar(
+                  pinned: true,
+                  title: CommonLable(
+                    text: Constants.menuList,
+                    isIconAvailable: false,
                     color: ColorConstant.whiteColor,
-                    image: DecorationImage(
-                      image: NetworkImage(hotel.imagePath),
-                      fit: BoxFit.cover,
-                    ),
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(30),
-                      bottomRight: Radius.circular(30),
-                    ),
                   ),
-                  child: ListTile(
-                    title: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: const Color(0x775D5850),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CommonLable(
-                            text: hotel.name,
-                            isIconAvailable: false,
-                            color: ColorConstant.whiteColor,
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            hotel.address,
-                            style: TextStyle(
-                              color: ColorConstant.whiteColor,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: Constants.appFont,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  backgroundColor: ColorConstant.primary,
+                  iconTheme: IconThemeData(color: ColorConstant.whiteColor),
                 ),
-              ),
-              SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final foodItem = foodList[index];
-                  final count = foodQuantity[foodItem.id.toString()] ?? 0;
-                  return Container(
-                    key: ValueKey('food$index'),
-                    width: size.width,
-                    padding: const EdgeInsets.all(10),
-                    margin: EdgeInsets.only(
-                      left: size.width * 0.05,
-                      right: size.width * 0.05,
-                    ),
+                SliverToBoxAdapter(
+                  child: Container(
+                    height: 250,
+                    alignment: Alignment.bottomCenter,
+                    margin: const EdgeInsets.only(bottom: 20),
                     decoration: BoxDecoration(
                       color: ColorConstant.whiteColor,
-                      borderRadius: BorderRadius.circular(10),
+                      image: DecorationImage(
+                        image: NetworkImage(hotel.imagePath),
+                        fit: BoxFit.cover,
+                      ),
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(30),
+                        bottomRight: Radius.circular(30),
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+                    child: ListTile(
+                      title: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: const Color(0x775D5850),
+                        ),
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    foodItem.name,
-                                    style: TextStyle(
-                                      color: ColorConstant.primaryText,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w600,
-                                      fontFamily: Constants.appFont,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    '₹${foodItem.price}',
-                                    style: TextStyle(
-                                      color: ColorConstant.primary,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
-                                      fontFamily: Constants.appFont,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      _buildPlusOrMinus(Icons.remove, () {
-                                        if (count > 0) {
-                                          ref
-                                              .read(
-                                                foodQuantityProvider.notifier,
-                                              )
-                                              .state = {
-                                            ...foodQuantity,
-                                            foodItem.id.toString(): (count - 1),
-                                          };
-                                          addToCart(foodItem.id, 'remove');
-                                          _showSnackBar(
-                                            'Item removed from cart',
-                                          );
-                                        }
-                                      }),
-                                      const SizedBox(width: 7),
-                                      Text('1'),
-                                      const SizedBox(width: 7),
-                                      _buildPlusOrMinus(Icons.add, () {
-                                        addToCart(foodItem.id, 'add');
-                                        _showSnackBar('Item added to cart');
-                                      }),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                            CommonLable(
+                              text: hotel.name,
+                              isIconAvailable: false,
+                              color: ColorConstant.whiteColor,
                             ),
-                            Expanded(
-                              child: Container(
-                                height: size.height * 0.15,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: CachedNetworkImage(
-                                    imageUrl: foodItem.foodImage,
-                                    fit: BoxFit.cover,
-                                    placeholder: (context, url) => const Center(
-                                      child: CircularProgressIndicator(
-                                        color: ColorConstant.primary,
-                                      ),
-                                    ),
-                                    errorWidget: (context, url, error) =>
-                                        const Icon(Icons.error),
-                                  ),
-                                ),
+                            const SizedBox(height: 5),
+                            Text(
+                              hotel.address,
+                              style: TextStyle(
+                                color: ColorConstant.whiteColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: Constants.appFont,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
-                        DottedLine(
-                          dashColor: ColorConstant.fadedBlack,
-                          dashLength: 3,
-                        ),
-                      ],
+                      ),
                     ),
-                  );
-                }, childCount: foodList.length),
-              ),
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: cartItems.isEmpty
-                      ? size.height * 0.09
-                      : size.height * 0.2,
+                  ),
                 ),
-              ),
-            ],
+                SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final foodItem = foodList[index];
+                    return Container(
+                      key: ValueKey('food$index'),
+                      width: size.width,
+                      padding: const EdgeInsets.all(10),
+                      margin: EdgeInsets.only(
+                        left: size.width * 0.05,
+                        right: size.width * 0.05,
+                      ),
+                      decoration: BoxDecoration(
+                        color: ColorConstant.whiteColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      foodItem.name,
+                                      style: TextStyle(
+                                        color: ColorConstant.primaryText,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w600,
+                                        fontFamily: Constants.appFont,
+                                      ),
+                                    ),
+                                    SizedBox(height: size.height * 0.02),
+                                    Text(
+                                      '₹${foodItem.price}',
+                                      style: TextStyle(
+                                        color: ColorConstant.primary,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                        fontFamily: Constants.appFont,
+                                      ),
+                                    ),
+                                    SizedBox(height: size.height * 0.02),
+                                    Row(
+                                      children: [
+                                        _buildPlusOrMinus(Icons.remove, () {
+                                          fetchCartSummary();
+                                          addToCart(foodItem.id, 'remove');
+                                        }),
+                                        SizedBox(width: size.width * 0.05),
+                                        Text('1'),
+                                        SizedBox(width: size.width * 0.05),
+                                        _buildPlusOrMinus(Icons.add, () {
+                                          addToCart(foodItem.id, 'add');
+                                          fetchCartSummary();
+                                        }),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Container(
+                                  height: size.height * 0.15,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: CachedNetworkImage(
+                                      imageUrl: foodItem.foodImage,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) =>
+                                          const Center(
+                                            child: CircularProgressIndicator(
+                                              color: ColorConstant.primary,
+                                            ),
+                                          ),
+                                      errorWidget: (context, url, error) =>
+                                          const Icon(Icons.error),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: size.height * 0.02),
+                          DottedLine(
+                            dashColor: ColorConstant.fadedBlack,
+                            dashLength: 3,
+                          ),
+                        ],
+                      ),
+                    );
+                  }, childCount: foodList.length),
+                ),
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: totalitems == 0
+                        ? size.height * 0.09
+                        : size.height * 0.2,
+                  ),
+                ),
+              ],
+            ),
           ),
-          if (cartItems.isNotEmpty)
+          if (totalitems > 0)
             Positioned(
               left: 20,
               right: 20,
-              bottom: 80,
+              bottom: size.height * 0.1,
               child: Container(
                 padding: EdgeInsets.symmetric(
                   horizontal: size.width * 0.05,
@@ -247,7 +239,7 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        '${cartItems.length} item(s) are added in your cart',
+                        '$totalitems item(s) are added in your cart',
                         overflow: TextOverflow.clip,
                         style: TextStyle(
                           color: ColorConstant.primaryText,
@@ -290,18 +282,13 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
       final response = await ApiServices.getCartSummary();
       if (response.status) {
         setState(() {
-          cartItems = response.data.cartSummary.items;
+          totalitems = response.data.cartSummary.totalItems;
         });
       } else {
         throw Exception(Constants.somethingWentWrong);
       }
     } catch (e) {
       debugPrint('Error fetching cart summary: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(Constants.somethingWentWrong)));
-      }
     } finally {
       setState(() {});
     }
@@ -344,7 +331,7 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
         actiion: actiion,
       );
       if (response.status) {
-        ref.read(cartListProvider.notifier).state = response.data.cart;
+        fetchCartSummary();
       } else {
         debugPrint('Error adding to cart: ${response.customMessage}');
       }
@@ -353,10 +340,5 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
     } finally {
       ref.read(isLoadingProvider.notifier).state = false;
     }
-  }
-
-  void _showSnackBar(String message) {
-    final snackbar = SnackBar(content: Text(message));
-    ScaffoldMessenger.of(context).showSnackBar(snackbar);
   }
 }

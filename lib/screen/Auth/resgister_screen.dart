@@ -7,7 +7,6 @@ import 'package:food_taxi/Common/common_textfields.dart';
 import 'package:food_taxi/Provider/loading_provider.dart';
 import 'package:food_taxi/constants/color_constant.dart';
 import 'package:food_taxi/constants/constants.dart';
-import 'package:food_taxi/screen/Auth/login_screen.dart';
 import 'package:food_taxi/utils/form_validators.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -175,13 +174,15 @@ class _ResgisterScreenState extends ConsumerState<ResgisterScreen> {
             title: Constants.registerButton,
             onPressed: isAccetpted
                 ? () {
-                    register(
-                      name,
-                      int.parse(phoneNumber),
-                      password,
-                      confirmPassword,
-                      context,
-                    );
+                    if (_formKey.currentState!.validate()) {
+                      register(
+                        name,
+                        int.parse(phoneNumber),
+                        password,
+                        confirmPassword,
+                        context,
+                      );
+                    }
                   }
                 : () =>
                       customErrorSnackBar(Constants.pleseAcceptTerms, context),
@@ -200,7 +201,7 @@ class _ResgisterScreenState extends ConsumerState<ResgisterScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Checkbox(
             value: isAccepted,
@@ -213,16 +214,17 @@ class _ResgisterScreenState extends ConsumerState<ResgisterScreen> {
             child: Text.rich(
               TextSpan(
                 children: [
-                  TextSpan(
-                    text: Constants.bySigningUp,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: ColorConstant.secondaryText,
-                      fontWeight: FontWeight.w500,
-                      fontFamily: Constants.appFont,
+                  WidgetSpan(
+                    child: Text(
+                      Constants.bySigningUp,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: ColorConstant.secondaryText,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: Constants.appFont,
+                      ),
                     ),
                   ),
-
                   WidgetSpan(
                     child: GestureDetector(
                       onTap: () {
@@ -315,10 +317,33 @@ class _ResgisterScreenState extends ConsumerState<ResgisterScreen> {
         ref.read(registerPhoneNumberProvider.notifier).state = '';
         ref.read(registerPasswordProvider.notifier).state = '';
         ref.read(registerConfirmPasswordProvider.notifier).state = '';
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (ctx) => const LoginScreen()),
-          (route) => false,
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog.adaptive(
+            content: Text(
+              'Registration successful! Please log in with your credentials.',
+              style: TextStyle(
+                fontSize: 15,
+                color: ColorConstant.primaryText,
+                fontWeight: FontWeight.w500,
+                fontFamily: Constants.appFont,
+              ),
+            ),
+            actions: [
+              TextButton(
+                child: Text(
+                  'OK',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: ColorConstant.primaryText,
+                    fontWeight: FontWeight.w500,
+                    fontFamily: Constants.appFont,
+                  ),
+                ),
+                onPressed: () => Navigator.pushNamed(context, '/LoginScreen'),
+              ),
+            ],
+          ),
         );
       } else {
         customErrorSnackBar(response.customMessage, context);

@@ -1,12 +1,17 @@
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:food_taxi/Provider/address_provider.dart';
 import 'package:food_taxi/models/cartsummary.dart';
 import 'package:food_taxi/utils/checkout_container.dart';
 
 import '../../Api/api_services.dart';
 import '../../Common/common_label.dart';
+import '../../Provider/loading_provider.dart';
 import '../../constants/color_constant.dart';
 import '../../constants/constants.dart';
+import '../profile/add_address.dart';
 
 class MyCartScreen extends ConsumerStatefulWidget {
   const MyCartScreen({super.key});
@@ -21,10 +26,33 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen> {
   int deliveryCharge = 0;
   bool isLoading = false;
 
+  bool isAddressAdded = false;
+
   @override
   void initState() {
     super.initState();
     fetchCartSummary();
+    fetchAddress();
+  }
+
+  void _showpopup() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('No address'),
+          content: const Text('Please add address to place order'),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> fetchCartSummary() async {
@@ -45,11 +73,6 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen> {
       }
     } catch (e) {
       debugPrint('Error fetching cart summary: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(Constants.somethingWentWrong)),
-        );
-      }
     } finally {
       setState(() {
         isLoading = false;
@@ -82,6 +105,39 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen> {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  Future<void> fetchAddress() async {
+    try {
+      final response = await ApiServices.getAddress();
+      final _street = response.data.address;
+      if (response.status) {
+        ref.read(streetProvider.notifier).state = _street.street;
+        ref.read(areaProvider.notifier).state = _street.area;
+        ref.read(landmarkProvider.notifier).state = _street.landmark;
+        ref.read(cityProvider.notifier).state = _street.city;
+        ref.read(pincodeProvider.notifier).state = _street.pincode;
+      }
+      
+      debugPrint('Address: ${ref.read(streetProvider)}');
+    } catch (e) {
+      debugPrint('Error fetching address: $e');
+    }
+  }
+
+  Future<void> addToCart(int cartId, String actiion) async {
+    ref.read(isLoadingProvider.notifier).state = true;
+    try {
+      final response = await ApiServices.addorremovefromcart(cartId, actiion);
+      if (response) {
+        debugPrint('Item added to cart successfully');
+        await fetchCartSummary();
+      }
+    } catch (e) {
+      debugPrint('Error adding to cart: $e');
+    } finally {
+      ref.read(isLoadingProvider.notifier).state = false;
     }
   }
 
@@ -124,10 +180,16 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen> {
               ),
               onPressed: isLoading
                   ? null
+                  : isAddressAdded
+                  ? () {
+                      Navigator.pop(context);
+                      _showpopup();
+                    }
                   : () async {
                       Navigator.of(context).pop();
                       await placeOrder();
                     },
+
               child: const Text(
                 Constants.yes,
                 style: TextStyle(fontFamily: Constants.appFont),
@@ -218,157 +280,335 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final street = ref.watch(streetProvider);
+    final area = ref.watch(areaProvider);
+    final landmark = ref.watch(landmarkProvider);
+    final city = ref.watch(cityProvider);
+    final pincode = ref.watch(pincodeProvider);
+
+    final isAddressAdded = street.isNotEmpty;
     return Scaffold(
       backgroundColor: ColorConstant.whiteColor,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        shrinkWrap: true,
-        primary: true,
-        slivers: [
-          SliverAppBar(
-            pinned: true,
-            title: const CommonLable(
-              text: Constants.mycart,
-              isIconAvailable: false,
-              color: ColorConstant.whiteColor,
-            ),
-            backgroundColor: ColorConstant.primary,
-          ),
-          SliverToBoxAdapter(child: SizedBox(height: size.height * 0.01)),
-
-          // Loader
-          if (isLoading)
-            SliverToBoxAdapter(
-              child: const Center(
-                child: CircularProgressIndicator(color: ColorConstant.primary),
+      body: RefreshIndicator(
+        color: ColorConstant.primary,
+        onRefresh: () async {
+          await fetchAddress();
+          await fetchCartSummary();
+        },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          shrinkWrap: true,
+          primary: true,
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              title: const CommonLable(
+                text: Constants.mycart,
+                isIconAvailable: false,
+                color: ColorConstant.whiteColor,
               ),
-            )
+              backgroundColor: ColorConstant.primary,
+            ),
+            SliverToBoxAdapter(child: SizedBox(height: size.height * 0.01)),
 
-          // No items
-          else if (cartSummary.isEmpty)
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: size.height * 0.7,
-                child: Center(
-                  child: Text(
-                    'No items in cart!',
-                    style: TextStyle(
-                      color: ColorConstant.secondaryText,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      fontFamily: Constants.appFont,
+            // Loader
+            if (isLoading)
+              SliverToBoxAdapter(
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    color: ColorConstant.primary,
+                  ),
+                ),
+              )
+            // No items
+            else if (cartSummary.isEmpty)
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: size.height * 0.7,
+                  child: Center(
+                    child: Text(
+                      'No items in cart!',
+                      style: TextStyle(
+                        color: ColorConstant.secondaryText,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: Constants.appFont,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            )
-
-          // Cart items
-          else ...[
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                childCount: cartSummary.length,
-                (context, index) {
-                  final cart = cartSummary[index];
-                  return Container(
-                    padding: EdgeInsets.all(size.height * 0.02),
-                    margin: EdgeInsets.only(
-                      left: size.width * 0.05,
-                      right: size.width * 0.05,
-                      bottom: size.height * 0.01,
-                    ),
-                    decoration: BoxDecoration(
-                      color: ColorConstant.whiteColor,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.grey,
-                          offset: Offset(0.0, 1.0),
-                          blurRadius: 6.0,
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          height: size.height * 0.1,
-                          width: size.height * 0.11,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            image: DecorationImage(
-                              image: NetworkImage(cart.foodImage),
-                              fit: BoxFit.cover,
+              )
+            // Cart items
+            else ...[
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  childCount: cartSummary.length,
+                  (context, index) {
+                    final cart = cartSummary[index];
+                    return Container(
+                      padding: EdgeInsets.all(size.height * 0.02),
+                      margin: EdgeInsets.only(
+                        left: size.width * 0.05,
+                        right: size.width * 0.05,
+                        bottom: size.height * 0.01,
+                      ),
+                      decoration: BoxDecoration(
+                        color: ColorConstant.whiteColor,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.grey,
+                            offset: Offset(0.0, 1.0),
+                            blurRadius: 6.0,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            height: size.height * 0.1,
+                            width: size.height * 0.11,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              image: DecorationImage(
+                                image: NetworkImage(cart.foodImage),
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  cart.foodName,
+                                  style: TextStyle(
+                                    color: ColorConstant.primaryText,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: Constants.appFont,
+                                  ),
+                                ),
+                                Text(
+                                  cart.restaurantName,
+                                  style: TextStyle(
+                                    color: ColorConstant.secondaryText,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    fontFamily: Constants.appFont,
+                                  ),
+                                ),
+                                Text(
+                                  cart.price,
+                                  style: TextStyle(
+                                    color: ColorConstant.primary,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    fontFamily: Constants.appFont,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
+                              _buildPlusOrMinus(Icons.remove, () {
+                                addToCart(cart.id, 'remove');
+                              }),
                               Text(
-                                cart.foodName,
+                                ' ${cart.quantity.toString()} ',
                                 style: TextStyle(
                                   color: ColorConstant.primaryText,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: Constants.appFont,
-                                ),
-                              ),
-                              Text(
-                                cart.restaurantName,
-                                style: TextStyle(
-                                  color: ColorConstant.secondaryText,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  fontFamily: Constants.appFont,
-                                ),
-                              ),
-                              Text(
-                                cart.price,
-                                style: TextStyle(
-                                  color: ColorConstant.primary,
                                   fontSize: 18,
                                   fontWeight: FontWeight.w500,
                                   fontFamily: Constants.appFont,
                                 ),
                               ),
+                              _buildPlusOrMinus(Icons.add, () {
+                                debugPrint('add ${cart.id}');
+                                addToCart(cart.id, 'add');
+                              }),
                             ],
                           ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              SliverToBoxAdapter(
+                child: isAddressAdded == true
+                    ? Container(
+                        margin: EdgeInsets.symmetric(
+                          horizontal: size.width * 0.03,
                         ),
-                        Text(
-                          'x${cart.quantity.toString()}',
-                          style: TextStyle(
-                            color: ColorConstant.primaryText,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                            fontFamily: Constants.appFont,
+                        padding: EdgeInsets.all(size.height * 0.02),
+
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: ColorConstant.whiteColor,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.grey, blurRadius: 6.0),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CommonLable(
+                              text: 'Address:',
+                              isIconAvailable: false,
+                              color: ColorConstant.primaryText,
+                            ),
+                            Text(
+                              '$street,',
+                              style: TextStyle(
+                                color: ColorConstant.primaryText,
+                                fontFamily: Constants.appFont,
+                                fontSize: 14,
+                              ),
+                            ),
+                            Text(
+                              '$area,',
+                              style: TextStyle(
+                                color: ColorConstant.primaryText,
+                                fontFamily: Constants.appFont,
+                                fontSize: 14,
+                              ),
+                            ),
+                            Text(
+                              '$landmark,',
+                              style: TextStyle(
+                                color: ColorConstant.primaryText,
+                                fontFamily: Constants.appFont,
+                                fontSize: 14,
+                              ),
+                            ),
+                            Text(
+                              '$city,',
+                              style: TextStyle(
+                                color: ColorConstant.primaryText,
+                                fontFamily: Constants.appFont,
+                                fontSize: 14,
+                              ),
+                            ),
+                            Text(
+                              '$pincode.',
+                              style: TextStyle(
+                                color: ColorConstant.primaryText,
+                                fontFamily: Constants.appFont,
+                                fontSize: 14,
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (ctx) => AddAddress(),
+                                  ),
+                                );
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                ),
+                                child: Card(
+                                  color: ColorConstant.whiteColor,
+                                  child: ListTile(
+                                    leading: Icon(
+                                      Icons.add,
+                                      color: ColorConstant.primary,
+                                    ),
+                                    title: Text(
+                                      'Update Address',
+                                      style: TextStyle(
+                                        color: ColorConstant.primaryText,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        fontFamily: Constants.appFont,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (ctx) => AddAddress()),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Card(
+                            color: ColorConstant.whiteColor,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                              ),
+                              child: ListTile(
+                                leading: Icon(
+                                  Icons.add,
+                                  color: ColorConstant.primary,
+                                ),
+                                title: Text(
+                                  'Add Address',
+                                  style: TextStyle(
+                                    color: ColorConstant.primaryText,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: Constants.appFont,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ],
-                    ),
-                  );
-                },
+                      ),
               ),
-            ),
 
-            // Checkout section
-            SliverToBoxAdapter(
-              child: CheckoutContainer(
-                onTap: () => onTapCheckout(
-                  context,
-                  Constants.confirmCheckout,
-                  'Are you sure you want to checkout?',
+              SliverToBoxAdapter(
+                child: CheckoutContainer(
+                  onTap: () => onTapCheckout(
+                    context,
+                    Constants.confirmCheckout,
+                    'Are you sure you want to checkout?',
+                  ),
+
+                  items: cartSummary,
+                  grandTotal: grandTotal,
+                  deliveryCharges: deliveryCharge,
                 ),
-                items: cartSummary,
-                grandTotal: grandTotal,
-                deliveryCharges: deliveryCharge,
               ),
-            ),
-          ],
+            ],
 
-          SliverToBoxAdapter(child: SizedBox(height: size.height * 0.09)),
-        ],
+            SliverToBoxAdapter(child: SizedBox(height: size.height * 0.09)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlusOrMinus(IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        height: 30,
+        width: 30,
+        decoration: BoxDecoration(
+          color: ColorConstant.primary,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: ColorConstant.whiteColor),
       ),
     );
   }

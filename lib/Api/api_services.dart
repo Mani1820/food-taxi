@@ -8,7 +8,6 @@ import 'package:food_taxi/models/banner_model.dart';
 import 'package:food_taxi/models/cart_model.dart';
 import 'package:food_taxi/models/food_model.dart';
 import 'package:food_taxi/models/get_address.dart';
-import 'package:food_taxi/models/login_response_model.dart';
 import 'package:food_taxi/models/order_history_model.dart';
 import 'package:food_taxi/models/register_model.dart';
 import 'package:food_taxi/models/restaurant_model.dart';
@@ -19,40 +18,38 @@ import '../models/cartsummary.dart';
 import '../models/order_details_model.dart';
 
 class ApiServices {
-  static Future<LoginResponse> login(String mobile, String password) async {
+  static Future<bool> login(String mobile, String password) async {
     final fcmToken = SharedpreferenceUtil.getString('fcm_token');
-    final response = await http.post(
-      Uri.parse('$baseUrl/login'),
-      headers: apiheader,
-      body: jsonEncode({
-        "mobile": mobile,
-        "password": password,
-        "fcm_token": fcmToken,
-      }),
-    );
-
-    final decoded = jsonDecode(response.body);
 
     try {
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final user = decoded['data']['user'];
-
-        await SharedpreferenceUtil.setString('token', user['token']);
-        debugPrint('Token saved: ${SharedpreferenceUtil.getString('token')}');
-
-        await SharedpreferenceUtil.setInt('userId', user['user_id']);
-        await SharedpreferenceUtil.setString('userName', user['name']);
-        await SharedpreferenceUtil.setString('userPhone', user['mobile']);
-
-        return loginResponseFromJson(response.body);
-      } else {
-        debugPrint('Error-------: ${response.reasonPhrase}');
-        debugPrint('Response: ${response.body}');
-        throw Exception('${response.reasonPhrase}');
+      final response = await http.post(
+        Uri.parse('$baseUrl/login'),
+        headers: apiHeader,
+        body: jsonEncode({
+          "mobile": mobile,
+          "password": password,
+          "fcm_token": fcmToken,
+        }),
+      );
+      final decoded = jsonDecode(response.body);
+      debugPrint('Response: ${response.body.toString()}');
+      if (decoded['data'] == null || decoded['data']['user'] == null) {
+        throw Exception('Invalid login response: ${response.body}');
       }
+      final user = decoded['data']['user'];
+
+      await SharedpreferenceUtil.setString('token', user['token']);
+      debugPrint('Token saved: ${SharedpreferenceUtil.getString('token')}');
+
+      await SharedpreferenceUtil.setInt('userId', user['user_id']);
+      await SharedpreferenceUtil.setString('userName', user['name']);
+      await SharedpreferenceUtil.setString('userPhone', user['mobile']);
+
+      return true;
     } catch (e) {
+      debugPrint('Token saved: ${SharedpreferenceUtil.getString('token')}');
       debugPrint('Error-------: $e');
-      throw '${decoded['custom_message'] ?? 'Something went wrong'}';
+      throw Exception('$e');
     }
   }
 
@@ -65,7 +62,7 @@ class ApiServices {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/register'),
-        headers: apiheader,
+        headers: apiHeader,
         body: jsonEncode({
           "name": name,
           "mobile": phone,
@@ -73,18 +70,16 @@ class ApiServices {
           "confirm_password": confirmPassword,
         }),
       );
+      final decoded = jsonDecode(response.body);
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final decoded = jsonDecode(response.body);
-
         final user = decoded['data']['user'];
 
         await SharedpreferenceUtil.setString('token', user['token']);
-        debugPrint('Token: ${user['token']}');
+        debugPrint('Token saved: ${SharedpreferenceUtil.getString('token')}');
 
         await SharedpreferenceUtil.setInt('userId', user['user_id']);
         await SharedpreferenceUtil.setString('userName', user['name']);
-        await SharedpreferenceUtil.setInt('userPhone', user['mobile']);
-
+        debugPrint('Response: ${response.body.toString()}');
         return signupResponseFromJson(response.body);
       } else if (response.statusCode == 400) {
         throw Exception('User already exists');
@@ -101,8 +96,11 @@ class ApiServices {
 
   static Future<void> logout() async {
     try {
-      await http.post(Uri.parse('$baseUrl/logout'), headers: authHeader);
-      await SharedpreferenceUtil.clear();
+      await http.post(Uri.parse('$baseUrl/logout'), headers: await getAuthHeader());
+      await SharedpreferenceUtil.setString('token', "");
+      await SharedpreferenceUtil.setInt('userId', 0);
+      await SharedpreferenceUtil.setString('userName', "");
+      await SharedpreferenceUtil.setString('userPhone', "");
       debugPrint('User logged out successfully');
     } catch (e) {
       debugPrint('Error logging out: $e');
@@ -118,9 +116,10 @@ class ApiServices {
         Uri.parse(
           '$baseUrl/restaurants/list/',
         ).replace(queryParameters: {"search": searchResult ?? ''}),
-        headers: authHeader,
+        headers: await getAuthHeader(),
       );
       if (response.statusCode == 200) {
+        debugPrint('Response: ${response.body.toString()}');
         return restaurantResponseFromJson(response.body);
       } else {
         debugPrint('Error-------: ${response.reasonPhrase}');
@@ -139,7 +138,7 @@ class ApiServices {
         Uri.parse(
           '$baseUrl/foods/list/',
         ).replace(queryParameters: {"restaurant_id": id.toString()}),
-        headers: authHeader,
+        headers: await getAuthHeader(),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return foodresponseFromJson(response.body);
@@ -158,7 +157,7 @@ class ApiServices {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/business-settings'),
-        headers: authHeader,
+        headers: await getAuthHeader(),
       );
       if (response.statusCode == 200) {
         return bannerResponseFromJson(response.body);
@@ -184,7 +183,7 @@ class ApiServices {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/address'),
-        headers: authHeader,
+        headers: await getAuthHeader(),
         body: jsonEncode({
           "user_id": userId,
           "street": street,
@@ -215,7 +214,7 @@ class ApiServices {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/cart'),
-        headers: authHeader,
+        headers: await getAuthHeader(),
         body: jsonEncode({
           "user_id": userId,
           "food_id": foodId,
@@ -226,6 +225,7 @@ class ApiServices {
         return cartResponseFromJson(response.body);
       } else {
         debugPrint('Error --- ${response.reasonPhrase}');
+        debugPrint('Response: ${response.body.toString()}');
         throw 'something went wrong';
       }
     } catch (e) {
@@ -236,21 +236,26 @@ class ApiServices {
 
   static Future<CartSummaryResponse> getCartSummary() async {
     final userId = SharedpreferenceUtil.getInt('userId');
+    final response = await http.get(
+      Uri.parse(
+        '$baseUrl/cart/summary',
+      ).replace(queryParameters: {"user_id": userId.toString()}),
+      headers: await getAuthHeader(),
+    );
     try {
-      final response = await http.get(
-        Uri.parse(
-          '$baseUrl/cart/summary',
-        ).replace(queryParameters: {"user_id": userId.toString()}),
-        headers: authHeader,
-      );
       if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint(
+          'phone number: ${SharedpreferenceUtil.getString('userPhone')}',
+        );
         return cartSummaryResponseFromJson(response.body);
       } else {
         debugPrint('Error --- ${response.body.toString()}');
         throw 'something went wrong';
       }
     } catch (e) {
+      debugPrint('Error --- ${response.body.toString()}');
       debugPrint('Error --- $e');
+
       throw 'Something went wrong';
     }
   }
@@ -260,8 +265,8 @@ class ApiServices {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/order/place'),
-        headers: authHeader,
-        body: jsonEncode({"user_id": userId}),
+        headers: await getAuthHeader(),
+        body: jsonEncode({"user_id": userId.toString()}),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return true;
@@ -277,12 +282,18 @@ class ApiServices {
 
   static Future<OrderHistoryResponse> getOrderHistory() async {
     final userId = SharedpreferenceUtil.getInt('userId');
+    final jwttoken = SharedpreferenceUtil.getString('token');
+    debugPrint('jwttoken: $jwttoken');
     try {
       final response = await http.get(
         Uri.parse(
           '$baseUrl/order/history',
         ).replace(queryParameters: {"user_id": userId.toString()}),
-        headers: authHeader,
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": "Bearer $jwttoken",
+        },
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return orderHistoryResponseFromJson(response.body);
@@ -304,7 +315,7 @@ class ApiServices {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/update-password'),
-        headers: authHeader,
+        headers: await getAuthHeader(),
         body: jsonEncode({
           "mobile": mobileNumber,
           "password": password,
@@ -332,10 +343,33 @@ class ApiServices {
         Uri.parse(
           '$baseUrl/get/address',
         ).replace(queryParameters: {"user_id": userId.toString()}),
-        headers: authHeader,
+        headers: await getAuthHeader(),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return historyresponseFromJson(response.body);
+      } else {
+        debugPrint('Error---------------: ${response.reasonPhrase}');
+        debugPrint('Response: ${response.body}');
+        throw ('${response.reasonPhrase}');
+      }
+    } catch (e) {
+      debugPrint('Error----------------: $e');
+      throw 'Something went wrong';
+    }
+  }
+
+  static Future<Orderdetailsresponse> getOrderDetails(String orderId) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          '$baseUrl/order/detail',
+        ).replace(queryParameters: {"order_id": orderId.toString()}),
+        headers: await getAuthHeader(),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint('Order details fetched successfully');
+        debugPrint('Response: ${response.body.toString()}');
+        return orderdetailsresponseFromJson(response.body);
       } else {
         debugPrint('Error-------: ${response.reasonPhrase}');
         debugPrint('Response: ${response.body}');
@@ -347,18 +381,20 @@ class ApiServices {
     }
   }
 
-  static Future<Orderdetailsresponse> getOrderDetails(String orderId) async {
+  static Future<bool> addorremovefromcart(int cartId, String action) async {
     try {
-      final response = await http.get(
-        Uri.parse(
-          '$baseUrl/order/detail',
-        ).replace(queryParameters: {"order_id": orderId.toString()}),
-        headers: authHeader,
+      final userID = SharedpreferenceUtil.getInt('userId');
+      final response = await http.post(
+        Uri.parse('$baseUrl/cart/remove'),
+        headers: await getAuthHeader(),
+        body: jsonEncode({
+          "user_id": userID,
+          "cart_id": cartId,
+          "action": action,
+        }),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
-        debugPrint('Order details fetched successfully');
-        debugPrint('Response: ${response.body.toString()}');
-        return orderdetailsresponseFromJson(response.body);
+        return true;
       } else {
         debugPrint('Error-------: ${response.reasonPhrase}');
         debugPrint('Response: ${response.body}');

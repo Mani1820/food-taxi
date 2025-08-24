@@ -25,48 +25,80 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen> {
   bool isloading = false;
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      slivers: [
-        SliverAppBar(
-          pinned: true,
-          backgroundColor: ColorConstant.primary,
-          title: const Text(
-            Constants.myOrder,
-            style: TextStyle(
-              fontFamily: Constants.appFont,
-              fontWeight: FontWeight.w600,
-              color: ColorConstant.whiteColor,
-            ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-        ),
-        isloading
-            ? SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    const Center(
-                      child: CircularProgressIndicator(
-                        color: ColorConstant.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            : SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  childCount: orders.length,
-                  (context, index) {
-                    return OrdersBuilder(index: index, orders: orders);
-                  },
+    return Scaffold(
+      backgroundColor: ColorConstant.whiteColor,
+      body: RefreshIndicator(
+        color: ColorConstant.primary,
+        onRefresh: () => _fetchOrders(),
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              backgroundColor: ColorConstant.primary,
+              title: const Text(
+                Constants.myOrder,
+                style: TextStyle(
+                  fontFamily: Constants.appFont,
+                  fontWeight: FontWeight.w600,
+                  color: ColorConstant.whiteColor,
                 ),
               ),
-        SliverToBoxAdapter(
-          child: SizedBox(height: MediaQuery.of(context).size.height * 0.09),
+            ),
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.02,
+              ),
+            ),
+            isloading
+                ? SliverToBoxAdapter(
+                    child: Column(
+                      children: [
+                        const Center(
+                          child: CircularProgressIndicator(
+                            color: ColorConstant.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : orders.isEmpty
+                ? SliverToBoxAdapter(
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.3,
+                        ),
+                        const Center(
+                          child: Text(
+                            'No Orders yet!',
+                            style: TextStyle(
+                              fontFamily: Constants.appFont,
+                              fontWeight: FontWeight.w500,
+                              color: ColorConstant.secondaryText,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      childCount: orders.length,
+                      (context, index) {
+                        return OrdersBuilder(index: index, orders: orders);
+                      },
+                    ),
+                  ),
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.09,
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 

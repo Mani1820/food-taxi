@@ -221,13 +221,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted) {
         return;
       }
-      if (response.status) {
+      if (response) {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (ctx) => const TabScreen()),
           (_) => false,
         );
       }
+      debugPrint('Response: ${response.toString()}');
       ref.read(isLoadingProvider.notifier).state = false;
     } catch (e) {
       ref.read(isLoadingProvider.notifier).state = false;

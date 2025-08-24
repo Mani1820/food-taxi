@@ -4,6 +4,7 @@ import 'package:food_taxi/Api/api_services.dart';
 import 'package:food_taxi/screen/profile/add_address.dart';
 
 import '../../Common/common_label.dart';
+import '../../Provider/address_provider.dart';
 import '../../constants/color_constant.dart';
 import '../../constants/constants.dart';
 
@@ -21,13 +22,13 @@ class _ManageAdreessState extends ConsumerState<ManageAdreess> {
     _fetchAddress();
   }
 
-  String street = '';
-  String area = '';
-  String landmark = '';
-  String city = '';
-  String pincode = '';
   @override
   Widget build(BuildContext context) {
+    String street = ref.watch(streetProvider);
+    String area = ref.watch(areaProvider);
+    String landmark = ref.watch(landmarkProvider);
+    String city = ref.watch(cityProvider);
+    String pincode = ref.watch(pincodeProvider);
     bool isaddressAvaible = street.isEmpty;
     return Scaffold(
       backgroundColor: ColorConstant.whiteColor,
@@ -41,29 +42,30 @@ class _ManageAdreessState extends ConsumerState<ManageAdreess> {
           color: ColorConstant.whiteColor,
         ),
       ),
-      body: Column(
-        children: [
-          SizedBox(height: 10),
-          Visibility(
-            visible: isaddressAvaible,
-            child: InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (ctx) => AddAddress()),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Card(
-                  color: ColorConstant.whiteColor,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Row(
-                      children: [
-                        Icon(Icons.add, color: ColorConstant.primary),
-                        SizedBox(width: 10),
-                        Text(
+      body: RefreshIndicator(
+        color: ColorConstant.primary,
+        onRefresh: () => _fetchAddress(),
+        child: Column(
+          children: [
+            SizedBox(height: 10),
+            Visibility(
+              visible: isaddressAvaible,
+              child: InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (ctx) => AddAddress()),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Card(
+                    color: ColorConstant.whiteColor,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: ListTile(
+                        leading: Icon(Icons.add, color: ColorConstant.primary),
+                        title: Text(
                           'Add Address',
                           style: TextStyle(
                             color: ColorConstant.primaryText,
@@ -72,25 +74,110 @@ class _ManageAdreessState extends ConsumerState<ManageAdreess> {
                             fontFamily: Constants.appFont,
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-          SizedBox(height: 20),
-          !isaddressAvaible
-              ? Card(
-                  color: ColorConstant.whiteColor,
-                  child: Container(
-                    padding: EdgeInsets.all(10),
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Delivery Address:',
+            SizedBox(height: 20),
+            !isaddressAvaible
+                ? Card(
+                    color: ColorConstant.whiteColor,
+                    child: Container(
+                      padding: EdgeInsets.all(10),
+                      width: MediaQuery.of(context).size.width * 0.9,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Delivery Address:',
+                            style: TextStyle(
+                              color: ColorConstant.primaryText,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: Constants.appFont,
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            '$street,',
+                            style: TextStyle(
+                              color: ColorConstant.primaryText,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: Constants.appFont,
+                            ),
+                          ),
+                          Text(
+                            '$area,',
+                            style: TextStyle(
+                              color: ColorConstant.primaryText,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: Constants.appFont,
+                            ),
+                          ),
+                          Text(
+                            '$landmark,',
+                            style: TextStyle(
+                              color: ColorConstant.primaryText,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: Constants.appFont,
+                            ),
+                          ),
+                          Text(
+                            '$city,',
+                            style: TextStyle(
+                              color: ColorConstant.primaryText,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: Constants.appFont,
+                            ),
+                          ),
+                          Text(
+                            pincode,
+                            style: TextStyle(
+                              color: ColorConstant.primaryText,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              fontFamily: Constants.appFont,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : Text(
+                    'No address added yet',
+                    style: TextStyle(
+                      color: ColorConstant.secondaryText,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: Constants.appFont,
+                    ),
+                  ),
+            SizedBox(height: 20),
+            Visibility(
+              visible: !isaddressAvaible,
+              child: InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (ctx) => AddAddress()),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Card(
+                    color: ColorConstant.whiteColor,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: ListTile(
+                        leading: Icon(Icons.add, color: ColorConstant.primary),
+                        title: Text(
+                          'Add Address',
                           style: TextStyle(
                             color: ColorConstant.primaryText,
                             fontSize: 18,
@@ -98,102 +185,14 @@ class _ManageAdreessState extends ConsumerState<ManageAdreess> {
                             fontFamily: Constants.appFont,
                           ),
                         ),
-                        SizedBox(height: 10),
-                        Text(
-                          '$street,',
-                          style: TextStyle(
-                            color: ColorConstant.primaryText,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            fontFamily: Constants.appFont,
-                          ),
-                        ),
-                        Text(
-                          '$area,',
-                          style: TextStyle(
-                            color: ColorConstant.primaryText,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            fontFamily: Constants.appFont,
-                          ),
-                        ),
-                        Text(
-                          '$landmark,',
-                          style: TextStyle(
-                            color: ColorConstant.primaryText,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            fontFamily: Constants.appFont,
-                          ),
-                        ),
-                        Text(
-                          '$city,',
-                          style: TextStyle(
-                            color: ColorConstant.primaryText,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            fontFamily: Constants.appFont,
-                          ),
-                        ),
-                        Text(
-                          pincode,
-                          style: TextStyle(
-                            color: ColorConstant.primaryText,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            fontFamily: Constants.appFont,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : Text(
-                  'No address added yet',
-                  style: TextStyle(
-                    color: ColorConstant.secondaryText,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    fontFamily: Constants.appFont,
-                  ),
-                ),
-          SizedBox(height: 20),
-          Visibility(
-            visible: !isaddressAvaible,
-            child: InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (ctx) => AddAddress()),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Card(
-                  color: ColorConstant.whiteColor,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      children: [
-                        Icon(Icons.add, color: ColorConstant.primary),
-                        SizedBox(width: 10),
-                        Text(
-                          'Update Address',
-                          style: TextStyle(
-                            color: ColorConstant.primaryText,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: Constants.appFont,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -202,13 +201,12 @@ class _ManageAdreessState extends ConsumerState<ManageAdreess> {
     try {
       final response = await ApiServices.getAddress();
       final address = response.data.address;
-      setState(() {
-        street = address.street;
-        area = address.area;
-        landmark = address.landmark;
-        city = address.city;
-        pincode = address.pincode;
-      });
+
+      ref.read(streetProvider.notifier).state = address.street;
+      ref.read(areaProvider.notifier).state = address.area;
+      ref.read(landmarkProvider.notifier).state = address.landmark;
+      ref.read(cityProvider.notifier).state = address.city;
+      ref.read(pincodeProvider.notifier).state = address.pincode;
     } catch (e) {
       debugPrint('Error fetching address: $e');
     }

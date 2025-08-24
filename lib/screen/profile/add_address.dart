@@ -103,6 +103,7 @@ class _AddAddressState extends ConsumerState<AddAddress> {
                     CommonButton(
                       title: isLoading ? 'Saving...' : 'Save',
                       onPressed: () {
+                        if (!_formKey.currentState!.validate()) return;
                         _saveAddress().then((value) => Navigator.pop(context));
                       },
                     ),

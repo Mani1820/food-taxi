@@ -53,7 +53,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 fontFamily: Constants.appFont,
               ),
             ),
-
+            Text(
+              '${SharedpreferenceUtil.getString('userPhone').toString()} ',
+              style: TextStyle(
+                color: ColorConstant.primaryText,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                fontFamily: Constants.appFont,
+              ),
+            ),
             _buildProfiletile(Icons.location_on, Constants.manageAddress, () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (ctx) => const ManageAdreess()),
@@ -165,7 +173,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ref.read(loginEmailProvider.notifier).state = '';
         ref.read(loginPasswordProvider.notifier).state = '';
         ref.read(loginPhoneNumberProvider.notifier).state = '';
-        SharedpreferenceUtil.clear();
       });
     } catch (e) {
       debugPrint(' Error logging out: $e');

@@ -48,6 +48,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final restaurants = ref.watch(restaurantsListProvider);
 
     return RefreshIndicator(
+      color: ColorConstant.primary,
       onRefresh: () async {
         await _fetchRestaurants();
         await _fetchBanners();
@@ -78,18 +79,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
               SliverToBoxAdapter(
-                child: FocusScope(
-                  child: CommonTextFields(
-                    hintText: Constants.searchRestaurants,
-                    obscureText: false,
-                    controller: searchController,
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: ColorConstant.hintText,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 15),
+                  child: FocusScope(
+                    child: CommonTextFields(
+                      hintText: Constants.searchRestaurants,
+                      obscureText: false,
+                      controller: searchController,
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: ColorConstant.hintText,
+                      ),
+                      onChanged: (value) {
+                        _fetchRestaurants();
+                      },
                     ),
-                    onChanged: (value) {
-                      _fetchRestaurants();
-                    },
                   ),
                 ),
               ),
@@ -136,7 +140,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 20, bottom: 20),
+                  padding: const EdgeInsets.only(left: 20, bottom: 3),
                   child: CommonLable(
                     text: Constants.populerRestaurants,
                     isIconAvailable: false,
@@ -164,7 +168,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         );
                       },
                     ),
-              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+              SliverToBoxAdapter(child: SizedBox(height: size.height * 0.1)),
             ],
           ),
         ),

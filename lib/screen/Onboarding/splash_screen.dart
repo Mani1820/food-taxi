@@ -41,7 +41,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     await Future.delayed(const Duration(seconds: 3));
     final token = SharedpreferenceUtil.getString('token');
     debugPrint('Token: $token');
-    if (token != null && token.isNotEmpty) {
+    if (token != null && token != '') {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (ctx) => const TabScreen()),

@@ -1,3 +1,7 @@
+// To parse this JSON data, do
+//
+//     final cartSummaryResponse = cartSummaryResponseFromJson(jsonString);
+
 import 'dart:convert';
 
 CartSummaryResponse cartSummaryResponseFromJson(String str) => CartSummaryResponse.fromJson(json.decode(str));
@@ -59,12 +63,14 @@ class Data {
 class CartSummary {
     List<Item> items;
     int total;
+    int totalItems;
     int deliveryCharge;
     int grandTotal;
 
     CartSummary({
         required this.items,
         required this.total,
+        required this.totalItems,
         required this.deliveryCharge,
         required this.grandTotal,
     });
@@ -72,6 +78,7 @@ class CartSummary {
     factory CartSummary.fromJson(Map<String, dynamic> json) => CartSummary(
         items: List<Item>.from(json["items"].map((x) => Item.fromJson(x))),
         total: json["total"],
+        totalItems: json["total_items"],
         deliveryCharge: json["delivery_charge"],
         grandTotal: json["grand_total"],
     );
@@ -79,6 +86,7 @@ class CartSummary {
     Map<String, dynamic> toJson() => {
         "items": List<dynamic>.from(items.map((x) => x.toJson())),
         "total": total,
+        "total_items": totalItems,
         "delivery_charge": deliveryCharge,
         "grand_total": grandTotal,
     };

@@ -27,7 +27,7 @@ class CommonLable extends StatelessWidget {
           text,
           style: TextStyle(
             color: color,
-            fontSize: 24,
+            fontSize: 22,
             fontWeight: FontWeight.w600,
             fontFamily: Constants.appFont,
           ),
