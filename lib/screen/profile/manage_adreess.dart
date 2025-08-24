@@ -177,7 +177,7 @@ class _ManageAdreessState extends ConsumerState<ManageAdreess> {
                       child: ListTile(
                         leading: Icon(Icons.add, color: ColorConstant.primary),
                         title: Text(
-                          'Add Address',
+                          'Update Address',
                           style: TextStyle(
                             color: ColorConstant.primaryText,
                             fontSize: 18,

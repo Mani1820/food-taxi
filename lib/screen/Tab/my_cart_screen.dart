@@ -119,7 +119,9 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen> {
         ref.read(cityProvider.notifier).state = _street.city;
         ref.read(pincodeProvider.notifier).state = _street.pincode;
       }
-      
+      if (_street.street.isNotEmpty) {
+        isAddressAdded = true;
+      }
       debugPrint('Address: ${ref.read(streetProvider)}');
     } catch (e) {
       debugPrint('Error fetching address: $e');
@@ -181,13 +183,13 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen> {
               onPressed: isLoading
                   ? null
                   : isAddressAdded
-                  ? () {
-                      Navigator.pop(context);
-                      _showpopup();
-                    }
-                  : () async {
+                  ? () async {
                       Navigator.of(context).pop();
                       await placeOrder();
+                    }
+                  : () {
+                      Navigator.pop(context);
+                      _showpopup();
                     },
 
               child: const Text(
@@ -286,7 +288,6 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen> {
     final city = ref.watch(cityProvider);
     final pincode = ref.watch(pincodeProvider);
 
-    final isAddressAdded = street.isNotEmpty;
     return Scaffold(
       backgroundColor: ColorConstant.whiteColor,
       body: RefreshIndicator(
@@ -465,53 +466,23 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen> {
                               color: ColorConstant.primaryText,
                             ),
                             Text(
-                              '$street,',
+                              '$street, $area, $landmark, $landmark, $city, $pincode',
                               style: TextStyle(
                                 color: ColorConstant.primaryText,
                                 fontFamily: Constants.appFont,
                                 fontSize: 14,
                               ),
                             ),
-                            Text(
-                              '$area,',
-                              style: TextStyle(
-                                color: ColorConstant.primaryText,
-                                fontFamily: Constants.appFont,
-                                fontSize: 14,
-                              ),
-                            ),
-                            Text(
-                              '$landmark,',
-                              style: TextStyle(
-                                color: ColorConstant.primaryText,
-                                fontFamily: Constants.appFont,
-                                fontSize: 14,
-                              ),
-                            ),
-                            Text(
-                              '$city,',
-                              style: TextStyle(
-                                color: ColorConstant.primaryText,
-                                fontFamily: Constants.appFont,
-                                fontSize: 14,
-                              ),
-                            ),
-                            Text(
-                              '$pincode.',
-                              style: TextStyle(
-                                color: ColorConstant.primaryText,
-                                fontFamily: Constants.appFont,
-                                fontSize: 14,
-                              ),
-                            ),
+
                             InkWell(
-                              onTap: () {
-                                Navigator.push(
+                              onTap: () async {
+                                await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (ctx) => AddAddress(),
                                   ),
                                 );
+                                fetchAddress();
                               },
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -541,11 +512,12 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen> {
                         ),
                       )
                     : InkWell(
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(builder: (ctx) => AddAddress()),
                           );
+                          fetchAddress();
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),

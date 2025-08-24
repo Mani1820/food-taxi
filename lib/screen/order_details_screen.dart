@@ -101,12 +101,45 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         horizontal: 15,
                         vertical: 1,
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
+                          Row(
+                            children: [
+                              Text(
+                                'cash',
+                                style: const TextStyle(
+                                  fontFamily: Constants.appFont,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: ColorConstant.primaryText,
+                                ),
+                              ),
+                              Container(
+                                margin: const EdgeInsets.only(left: 10),
+                                padding: const EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  color: paymentStatus == 'Paid'
+                                      ? Colors.green
+                                      : ColorConstant.primary,
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                child: Text(
+                                  paymentStatus,
+                                  style: const TextStyle(
+                                    fontFamily: Constants.appFont,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: ColorConstant.whiteColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10),
                           Text(
-                            'Total: ₹$grandTotal',
+                            'Total: ₹$total',
                             style: const TextStyle(
                               fontFamily: Constants.appFont,
                               fontSize: 14,
@@ -114,33 +147,22 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               color: ColorConstant.secondaryText,
                             ),
                           ),
-                          Spacer(),
                           Text(
-                            'cash',
+                            'Delivery Charge: ₹$deliveryCharge',
                             style: const TextStyle(
                               fontFamily: Constants.appFont,
                               fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: ColorConstant.primaryText,
+                              fontWeight: FontWeight.w500,
+                              color: ColorConstant.secondaryText,
                             ),
                           ),
-                          Container(
-                            margin: const EdgeInsets.only(left: 10),
-                            padding: const EdgeInsets.all(5),
-                            decoration: BoxDecoration(
-                              color: paymentStatus == 'Paid'
-                                  ? Colors.green
-                                  : ColorConstant.primary,
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                            child: Text(
-                              paymentStatus,
-                              style: const TextStyle(
-                                fontFamily: Constants.appFont,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: ColorConstant.whiteColor,
-                              ),
+                          Text(
+                            'Grand Total: ₹$grandTotal',
+                            style: const TextStyle(
+                              fontFamily: Constants.appFont,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: ColorConstant.secondaryText,
                             ),
                           ),
                         ],
@@ -177,7 +199,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 15),
                       child: Text(
-                        '$street,\n$area,\n$landmark, \n$city-$pincode',
+                        '$street, $area, $landmark, $city-$pincode',
                         style: TextStyle(
                           fontFamily: Constants.appFont,
                           fontSize: 16,
@@ -247,65 +269,53 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                     decoration: BoxDecoration(
                                       color: ColorConstant.whiteColor,
                                       borderRadius: BorderRadius.circular(10),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: ColorConstant.secondaryText,
-                                          blurRadius: 5,
-                                        ),
-                                      ],
                                     ),
-                                    child: Card(
-                                      color: ColorConstant.whiteColor,
-                                      elevation: 0,
-                                      child: ListTile(
-                                        leading: ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                          child: SizedBox(
-                                            height: 50,
-                                            width: 50,
-                                            child: CachedNetworkImage(
-                                              imageUrl: item.foodImage,
-                                              fit: BoxFit.cover,
-                                              placeholder: (context, url) =>
-                                                  const Center(
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                          color: ColorConstant
-                                                              .primary,
-                                                        ),
-                                                  ),
-                                              errorWidget:
-                                                  (
-                                                    context,
-                                                    url,
-                                                    error,
-                                                  ) => const Icon(
-                                                    Icons.broken_image_outlined,
-                                                    color: ColorConstant
-                                                        .secondaryText,
-                                                  ),
-                                            ),
+                                    child: ListTile(
+                                      leading: ClipRRect(
+                                        borderRadius: BorderRadius.circular(10),
+                                        child: SizedBox(
+                                          height: 50,
+                                          width: 50,
+                                          child: CachedNetworkImage(
+                                            imageUrl: item.foodImage,
+                                            fit: BoxFit.cover,
+                                            placeholder: (context, url) =>
+                                                const Center(
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        color: ColorConstant
+                                                            .primary,
+                                                      ),
+                                                ),
+                                            errorWidget:
+                                                (
+                                                  context,
+                                                  url,
+                                                  error,
+                                                ) => const Icon(
+                                                  Icons.broken_image_outlined,
+                                                  color: ColorConstant
+                                                      .secondaryText,
+                                                ),
                                           ),
                                         ),
-                                        title: Text(
-                                          '${item.name} x${item.qty}',
-                                          style: TextStyle(
-                                            fontFamily: Constants.appFont,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: ColorConstant.primaryText,
-                                          ),
+                                      ),
+                                      title: Text(
+                                        '${item.name} x${item.qty}',
+                                        style: TextStyle(
+                                          fontFamily: Constants.appFont,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: ColorConstant.primaryText,
                                         ),
-                                        trailing: Text(
-                                          '₹${item.price.split('.')[0]}',
-                                          style: TextStyle(
-                                            fontFamily: Constants.appFont,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: ColorConstant.primaryText,
-                                          ),
+                                      ),
+                                      trailing: Text(
+                                        '₹${item.price.split('.')[0]}',
+                                        style: TextStyle(
+                                          fontFamily: Constants.appFont,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: ColorConstant.primaryText,
                                         ),
                                       ),
                                     ),
@@ -314,7 +324,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.only(top: 10),
+                              padding: const EdgeInsets.only(top: 2),
                               child: DottedLine(
                                 dashColor: ColorConstant.secondaryText,
                                 lineThickness: 1,
