@@ -352,7 +352,7 @@ class _ResgisterScreenState extends ConsumerState<ResgisterScreen> {
       if (!context.mounted) return;
       ref.read(isLoadingProvider.notifier).state = false;
       debugPrint('Error: $e');
-      customErrorSnackBar(e.toString(), context);
+      customErrorSnackBar('User Already Exist. Try Login', context);
     }
   }
 }

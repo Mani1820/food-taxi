@@ -23,6 +23,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late final TextEditingController _numberController;
   late final TextEditingController _passwordController;
+  String errorMessage = '';
 
   @override
   void initState() {
@@ -216,12 +217,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       );
       return;
     }
+
     try {
       final response = await ApiServices.login(mobile, password);
+      setState(() {
+        errorMessage = response.customMessage;
+      });
       if (!mounted) {
         return;
       }
-      if (response) {
+      if (response.httpCode == 200 || response.httpCode == 201) {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (ctx) => const TabScreen()),
@@ -232,14 +237,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ref.read(isLoadingProvider.notifier).state = false;
     } catch (e) {
       ref.read(isLoadingProvider.notifier).state = false;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Invalid Phone number or password')),
+      );
     } finally {
       ref.read(isLoadingProvider.notifier).state = false;
       ref.read(loginEmailProvider.notifier).state = '';
       ref.read(loginPasswordProvider.notifier).state = '';
       ref.read(loginPhoneNumberProvider.notifier).state = '';
     }
+    ref.read(isLoadingProvider.notifier).state = false;
   }
 }

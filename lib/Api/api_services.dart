@@ -8,6 +8,7 @@ import 'package:food_taxi/models/banner_model.dart';
 import 'package:food_taxi/models/cart_model.dart';
 import 'package:food_taxi/models/food_model.dart';
 import 'package:food_taxi/models/get_address.dart';
+import 'package:food_taxi/models/login_response_model.dart';
 import 'package:food_taxi/models/order_history_model.dart';
 import 'package:food_taxi/models/register_model.dart';
 import 'package:food_taxi/models/restaurant_model.dart';
@@ -18,23 +19,23 @@ import '../models/cartsummary.dart';
 import '../models/order_details_model.dart';
 
 class ApiServices {
-  static Future<bool> login(String mobile, String password) async {
+  static Future<LoginResponse> login(String mobile, String password) async {
     final fcmToken = SharedpreferenceUtil.getString('fcm_token');
 
+    final response = await http.post(
+      Uri.parse('$baseUrl/login'),
+      headers: apiHeader,
+      body: jsonEncode({
+        "mobile": mobile,
+        "password": password,
+        "fcm_token": fcmToken,
+      }),
+    );
+    final decoded = jsonDecode(response.body);
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/login'),
-        headers: apiHeader,
-        body: jsonEncode({
-          "mobile": mobile,
-          "password": password,
-          "fcm_token": fcmToken,
-        }),
-      );
-      final decoded = jsonDecode(response.body);
       debugPrint('Response: ${response.body.toString()}');
       if (decoded['data'] == null || decoded['data']['user'] == null) {
-        throw Exception('Invalid login response: ${response.body}');
+        throw Exception('Internal sever error');
       }
       final user = decoded['data']['user'];
 
@@ -45,11 +46,11 @@ class ApiServices {
       await SharedpreferenceUtil.setString('userName', user['name']);
       await SharedpreferenceUtil.setString('userPhone', user['mobile']);
 
-      return true;
+      return loginResponseFromJson(response.body);
     } catch (e) {
       debugPrint('Token saved: ${SharedpreferenceUtil.getString('token')}');
       debugPrint('Error-------: $e');
-      throw Exception('$e');
+      throw ('${response.reasonPhrase}');
     }
   }
 
@@ -96,7 +97,10 @@ class ApiServices {
 
   static Future<void> logout() async {
     try {
-      await http.post(Uri.parse('$baseUrl/logout'), headers: await getAuthHeader());
+      await http.post(
+        Uri.parse('$baseUrl/logout'),
+        headers: await getAuthHeader(),
+      );
       await SharedpreferenceUtil.setString('token', "");
       await SharedpreferenceUtil.setInt('userId', 0);
       await SharedpreferenceUtil.setString('userName', "");

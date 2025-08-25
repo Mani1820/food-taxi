@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
@@ -20,23 +21,42 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<ConsumerStatefulWidget> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with WidgetsBindingObserver {
   final String user = SharedpreferenceUtil.getString('userName')!;
   final searchController = TextEditingController();
   final sliderController = CarouselSliderController();
 
+  Timer? _debounce;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
   }
 
+  @override
+  void dispose() {
+    searchController.dispose();
+    _debounce?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _fetchBanners();
+    }
+  }
+
   Future<void> _loadData() async {
     ref.read(isLoadingProvider.notifier).state = true;
-    await _fetchRestaurants();
-    await _fetchBanners();
+    await Future.wait([_fetchRestaurants(), _fetchBanners()]);
     ref.read(isLoadingProvider.notifier).state = false;
   }
 
@@ -46,13 +66,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final banners = ref.watch(bannerProvider);
     final isLoading = ref.watch(isLoadingProvider);
     final restaurants = ref.watch(restaurantsListProvider);
+    final isAcceptingOrders = ref.watch(isAcceptingOrderProvider);
 
     return RefreshIndicator(
       color: ColorConstant.primary,
-      onRefresh: () async {
-        await _fetchRestaurants();
-        await _fetchBanners();
-      },
+      onRefresh: _loadData,
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () => FocusScope.of(context).unfocus(),
@@ -72,15 +90,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 backgroundColor: ColorConstant.primary,
                 actions: [
                   CircleAvatar(
-                    radius: 30,
+                    radius: size.width * 0.08,
                     backgroundColor: ColorConstant.primary,
-                    child: Image.asset(Constants.logoBlack, width: 40),
+                    child: Image.asset(
+                      Constants.logoBlack,
+                      width: size.width * 0.1,
+                    ),
                   ),
                 ],
               ),
+
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 15),
+                  padding: EdgeInsets.only(top: size.height * 0.015),
                   child: FocusScope(
                     child: CommonTextFields(
                       hintText: Constants.searchRestaurants,
@@ -91,25 +113,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         color: ColorConstant.hintText,
                       ),
                       onChanged: (value) {
-                        _fetchRestaurants();
+                        if (_debounce?.isActive ?? false) _debounce!.cancel();
+                        _debounce = Timer(
+                          const Duration(milliseconds: 500),
+                          () {
+                            _fetchRestaurants();
+                          },
+                        );
                       },
                     ),
                   ),
                 ),
               ),
-              SliverToBoxAdapter(
-                child: FutureBuilder(
-                  future: _fetchBanners(),
-                  builder: (context, snapshot) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: CarouselSlider(
-                        items: List.generate(
-                          banners.length,
-                          (index) => Container(
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 15,
-                              vertical: 10,
+
+              if (banners.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: size.height * 0.012,
+                    ),
+                    child: CarouselSlider.builder(
+                      itemCount: banners.length,
+                      itemBuilder: (context, index, realIndex) {
+                        return RepaintBoundary(
+                          child: Container(
+                            margin: EdgeInsets.symmetric(
+                              horizontal: size.width * 0.04,
+                              vertical: size.height * 0.012,
                             ),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
@@ -129,50 +159,81 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               ),
                             ),
                           ),
-                        ),
-                        carouselController: sliderController,
-                        options: CarouselOptions(
-                          height: size.height * 0.2,
-                          autoPlay: true,
-                          enlargeCenterPage: false,
-                          viewportFraction: 0.7,
-                          initialPage: 2,
-                        ),
+                        );
+                      },
+                      carouselController: sliderController,
+                      options: CarouselOptions(
+                        height: size.height * 0.2,
+                        autoPlay: true,
+                        enlargeCenterPage: false,
+                        viewportFraction: 0.7,
+                        initialPage: 0,
                       ),
-                    );
-                  },
+                    ),
+                  ),
                 ),
-              ),
+
+              if (!isAcceptingOrders)
+                SliverToBoxAdapter(
+                  child: Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.symmetric(
+                      horizontal: size.width * 0.05,
+                      vertical: size.height * 0.01,
+                    ),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      "Ordering is temporarily disabled",
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 20, bottom: 3),
+                  padding: EdgeInsets.only(
+                    left: size.width * 0.05,
+                    bottom: size.height * 0.005,
+                  ),
                   child: CommonLable(
                     text: Constants.populerRestaurants,
                     isIconAvailable: false,
                   ),
                 ),
               ),
-              isLoading
-                  ? const SliverFillRemaining(
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: ColorConstant.primary,
-                        ),
-                      ),
-                    )
-                  : restaurants.isEmpty
-                  ? const SliverFillRemaining(
-                      child: Center(child: Text('No Restaurants Found')),
-                    )
-                  : SliverList.builder(
-                      itemCount: restaurants.length,
-                      itemBuilder: (context, index) {
-                        return PopulerRestaurentBuilder(
-                          index: index,
-                          restaurants: restaurants,
-                        );
-                      },
+
+              if (isLoading)
+                const SliverFillRemaining(
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: ColorConstant.primary,
                     ),
+                  ),
+                )
+              else if (restaurants.isEmpty)
+                const SliverFillRemaining(
+                  child: Center(child: Text('No Restaurants Found')),
+                )
+              else
+                SliverList.builder(
+                  itemCount: restaurants.length,
+                  itemBuilder: (context, index) {
+                    return RepaintBoundary(
+                      child: PopulerRestaurentBuilder(
+                        index: index,
+                        restaurants: restaurants,
+                      ),
+                    );
+                  },
+                ),
+
               SliverToBoxAdapter(child: SizedBox(height: size.height * 0.1)),
             ],
           ),
@@ -189,9 +250,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       if (response.status) {
         ref.read(restaurantsListProvider.notifier).state =
             response.data.restaurants;
-        debugPrint(
-          'Restaurants fetched successfully: ${response.data.restaurants.length} items',
-        );
+        debugPrint('Restaurants fetched: ${response.data.restaurants.length}');
       } else {
         debugPrint('Error fetching restaurants: ${response.customMessage}');
       }
@@ -209,7 +268,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ref.read(isAcceptingOrderProvider.notifier).state =
             response.data.settings.acceptOrders == 1;
         debugPrint(
-          'Banners fetched successfully: ${response.data.settings.appHomeBanners.length} items',
+          'Banners fetched: ${response.data.settings.appHomeBanners.length}',
         );
       } else {
         debugPrint('Error fetching banners: ${response.customMessage}');
@@ -217,11 +276,5 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     } catch (e) {
       debugPrint('Error fetching banners: $e');
     }
-  }
-
-  @override
-  void dispose() {
-    searchController.dispose();
-    super.dispose();
   }
 }
