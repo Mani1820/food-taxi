@@ -40,7 +40,6 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen>
     super.dispose();
   }
 
-  // ✅ Refresh when app resumes
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -102,7 +101,9 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen>
         ref.read(pincodeProvider.notifier).state = streetData.pincode;
       }
       if (streetData.street.isNotEmpty) {
-        isAddressAdded = true;
+        setState(() {
+          isAddressAdded = true;
+        });
       }
     } catch (e) {
       debugPrint('Error fetching address: $e');
@@ -121,28 +122,43 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen>
     }
   }
 
-  // ✅ Extracted
   void onTapCheckout(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text(Constants.confirmCheckout),
-        content: const Text('Are you sure you want to checkout?'),
+      builder: (ctx) => AlertDialog(
+        title: const Text(
+          Constants.confirmCheckout,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontFamily: Constants.appFont,
+          ),
+        ),
+        content: const Text(
+          'Are you sure you want to checkout?',
+          style: TextStyle(fontFamily: Constants.appFont),
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(ctx),
             child: const Text(Constants.no),
           ),
-          ElevatedButton(
+          TextButton(
             onPressed: isLoading
                 ? null
                 : isAddressAdded
                 ? () async {
-                    Navigator.of(context).pop();
+                    Navigator.pop(ctx);
                     await placeOrder();
                   }
                 : () => _showNoAddressDialog(),
-            child: const Text(Constants.yes),
+            child: Text(
+              Constants.yes,
+              style: TextStyle(
+                color: ColorConstant.primary,
+                fontSize: 16,
+                fontFamily: Constants.appFont,
+              ),
+            ),
           ),
         ],
       ),
@@ -152,12 +168,21 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen>
   void _showNoAddressDialog() {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('No address'),
-        content: const Text('Please add address to place order'),
+      builder: (ctx) => AlertDialog(
+        title: const Text(
+          'No address',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontFamily: Constants.appFont,
+          ),
+        ),
+        content: const Text(
+          'Please add address to place order',
+          style: TextStyle(fontFamily: Constants.appFont),
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('OK'),
           ),
         ],
@@ -171,23 +196,45 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen>
       context: context,
       backgroundColor: ColorConstant.whiteColor,
       builder: (_) => Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(Constants.pageView3, height: size.height * 0.25),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
             const Text(
               Constants.thankYou,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+                fontFamily: Constants.appFont,
+              ),
             ),
-            const Text(Constants.forYourOrder),
-            const SizedBox(height: 10),
-            const Text(Constants.orderPlaced, style: TextStyle(fontSize: 12)),
+            const Text(
+              Constants.forYourOrder,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w500,
+                fontFamily: Constants.appFont,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              Constants.orderPlaced,
+              style: TextStyle(fontSize: 12, fontFamily: Constants.appFont),
+            ),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(Constants.dissmiss),
+              child: Text(
+                Constants.dissmiss,
+                style: TextStyle(
+                  color: ColorConstant.primary,
+                  fontSize: 16,
+                  fontFamily: Constants.appFont,
+                ),
+              ),
             ),
+            SizedBox(height: size.height * 0.19),
           ],
         ),
       ),
@@ -276,9 +323,6 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen>
     );
   }
 }
-
-// ✅ Extracted Widgets
-
 class CartItemTile extends StatelessWidget {
   final Item cart;
   final VoidCallback onAdd;

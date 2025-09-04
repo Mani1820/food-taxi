@@ -66,7 +66,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final banners = ref.watch(bannerProvider);
     final isLoading = ref.watch(isLoadingProvider);
     final restaurants = ref.watch(restaurantsListProvider);
-    final isAcceptingOrders = ref.watch(isAcceptingOrderProvider);
 
     return RefreshIndicator(
       color: ColorConstant.primary,
@@ -173,29 +172,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ),
                 ),
 
-              if (!isAcceptingOrders)
-                SliverToBoxAdapter(
-                  child: Container(
-                    width: double.infinity,
-                    margin: EdgeInsets.symmetric(
-                      horizontal: size.width * 0.05,
-                      vertical: size.height * 0.01,
-                    ),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade100,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      "Ordering is temporarily disabled",
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.only(
