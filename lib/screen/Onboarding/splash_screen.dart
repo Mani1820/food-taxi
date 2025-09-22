@@ -40,6 +40,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Future<void> _checkLoginStatus() async {
     await Future.delayed(const Duration(seconds: 3));
     final token = SharedpreferenceUtil.getString('token');
+    if (!mounted) {
+      return;
+      
+    }
     debugPrint('Token: $token');
     if (token != null && token != '') {
       Navigator.pushAndRemoveUntil(

@@ -150,7 +150,10 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen>
                     Navigator.pop(ctx);
                     await placeOrder();
                   }
-                : () => _showNoAddressDialog(),
+                : () {
+                    Navigator.pop(ctx);
+                    _showNoAddressDialog();
+                  },
             child: Text(
               Constants.yes,
               style: TextStyle(
@@ -323,6 +326,7 @@ class _MyCartScreenState extends ConsumerState<MyCartScreen>
     );
   }
 }
+
 class CartItemTile extends StatelessWidget {
   final Item cart;
   final VoidCallback onAdd;
@@ -384,7 +388,7 @@ class CartItemTile extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  cart.price,
+                  cart.price.toString(),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,

@@ -346,6 +346,7 @@ class _ResgisterScreenState extends ConsumerState<ResgisterScreen> {
           ),
         );
       } else {
+        if (!context.mounted) return;
         customErrorSnackBar(response.customMessage, context);
       }
     } catch (e) {

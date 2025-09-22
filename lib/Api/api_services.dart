@@ -136,7 +136,7 @@ class ApiServices {
     }
   }
 
-  static Future<Foodresponse> getFoodList(int id) async {
+  static Future<FoodResponse> getFoodList(int id) async {
     try {
       final response = await http.get(
         Uri.parse(
@@ -145,7 +145,7 @@ class ApiServices {
         headers: await getAuthHeader(),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return foodresponseFromJson(response.body);
+        return foodResponseFromJson(response.body);
       } else {
         debugPrint('Error-------: ${response.reasonPhrase}');
         debugPrint('Response: ${response.body}');

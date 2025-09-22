@@ -336,7 +336,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                           ),
                                         ),
                                         trailing: Text(
-                                          '₹${item.price.split('.')[0]}',
+                                          '₹${item.price}',
                                           style: const TextStyle(
                                             fontFamily: Constants.appFont,
                                             fontSize: 16,
@@ -383,9 +383,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           orderedItems = order.restaurants;
           deliveryStatus = order.status;
           paymentStatus = order.paymentStatus;
-          grandTotal = order.summary.grandTotal;
-          deliveryCharge = order.summary.deliveryCharge;
-          total = order.summary.total;
+          grandTotal = order.summary.grandTotal.toString();
+          deliveryCharge = order.summary.deliveryCharge.toString();
+          total = order.summary.total.toString();
           street = order.address.street;
           area = order.address.area;
           landmark = order.address.landmark;

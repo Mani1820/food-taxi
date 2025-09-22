@@ -145,14 +145,39 @@ class _MenuListScreenState extends ConsumerState<MenuListScreen> {
                                       ),
                                     ),
                                     SizedBox(height: size.height * 0.02),
-                                    Text(
-                                      '₹${foodItem.price}',
-                                      style: TextStyle(
-                                        color: ColorConstant.primary,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w500,
-                                        fontFamily: Constants.appFont,
-                                      ),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      spacing: 8,
+                                      children: [
+                                        Text(
+                                          '₹${foodItem.discountPrice}',
+                                          style: TextStyle(
+                                            color: ColorConstant.primary,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w500,
+                                            fontFamily: Constants.appFont,
+                                          ),
+                                        ),
+
+                                        Text(
+                                          '₹${foodItem.price}',
+                                          style: TextStyle(
+                                            color: ColorConstant.fadedBlack,
+                                            decoration:
+                                                TextDecoration.lineThrough,
+                                            decorationColor:
+                                                ColorConstant.blackColor,
+                                            decorationThickness: 5,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            fontFamily: Constants.appFont,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     SizedBox(height: size.height * 0.02),
                                     Row(

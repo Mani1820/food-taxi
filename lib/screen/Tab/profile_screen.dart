@@ -125,6 +125,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             OutlinedButton(
               onPressed: () async {
                 await logout();
+                if (!context.mounted) return;
                 Navigator.pushNamedAndRemoveUntil(
                   context,
                   '/SplashScreen',

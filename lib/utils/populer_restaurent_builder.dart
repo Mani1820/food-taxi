@@ -9,7 +9,11 @@ import '../constants/constants.dart';
 import '../models/restaurant_model.dart';
 
 class PopulerRestaurentBuilder extends ConsumerWidget {
-  const PopulerRestaurentBuilder({super.key, required this.index, required this.restaurants});
+  const PopulerRestaurentBuilder({
+    super.key,
+    required this.index,
+    required this.restaurants,
+  });
 
   final int index;
   final List<Restaurant> restaurants;
@@ -163,6 +167,38 @@ class PopulerRestaurentBuilder extends ConsumerWidget {
                         ),
                       ),
                     ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: const Color.fromARGB(43, 255, 255, 255),
+              border: Border(
+                top: BorderSide(color: ColorConstant.whiteColor, width: 1.5),
+                left: BorderSide(color: ColorConstant.whiteColor, width: 1.5),
+                right: BorderSide(color: ColorConstant.whiteColor, width: 1.5),
+                bottom: BorderSide(color: ColorConstant.whiteColor, width: 1.5),
+              ),
+              boxShadow: [
+                BoxShadow(color: ColorConstant.secondaryText, blurRadius: 4),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 10,
+              children: [
+                Icon(Icons.discount, color: ColorConstant.whiteColor),
+                Text(
+                  'Discount',
+                  style: TextStyle(
+                    fontSize: size.height * 0.02,
+                    color: ColorConstant.whiteColor,
+                    fontFamily: Constants.appFont,
                   ),
                 ),
               ],

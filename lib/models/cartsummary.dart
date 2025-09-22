@@ -98,7 +98,7 @@ class Item {
     String foodImage;
     String restaurantName;
     int quantity;
-    String price;
+    int price;
 
     Item({
         required this.id,
