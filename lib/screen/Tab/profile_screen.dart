@@ -82,9 +82,61 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               );
             }),
             _buildProfiletile(Icons.logout, Constants.logout, onTapLogout),
+            _buildProfiletile(Icons.delete, 'Delete Account', onDeleteAccount),
           ],
         ),
       ),
+    );
+  }
+
+  void onDeleteAccount() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            'Delete Account',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontFamily: Constants.appFont,
+            ),
+          ),
+          content: const Text(
+            'Are you sure you want to delete your account?',
+            style: TextStyle(fontFamily: Constants.appFont),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  fontFamily: Constants.appFont,
+                  color: ColorConstant.blackColor,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                await deleteAccount();
+                if (!context.mounted) return;
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/SplashScreen',
+                  (route) => false,
+                );
+              },
+              child: const Text(
+                'Delete',
+                style: TextStyle(
+                  fontFamily: Constants.appFont,
+                  color: Colors.red,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -175,6 +227,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ref.read(loginPasswordProvider.notifier).state = '';
         ref.read(loginPhoneNumberProvider.notifier).state = '';
       });
+    } catch (e) {
+      debugPrint(' Error logging out: $e');
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    try {
+      final response = await ApiServices.deleteAccount();
+      if (response) {
+        ref.read(loginEmailProvider.notifier).state = '';
+        ref.read(loginPasswordProvider.notifier).state = '';
+        ref.read(loginPhoneNumberProvider.notifier).state = '';
+      }
     } catch (e) {
       debugPrint(' Error logging out: $e');
     }

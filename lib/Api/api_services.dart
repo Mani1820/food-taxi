@@ -409,4 +409,28 @@ class ApiServices {
       throw 'Something went wrong';
     }
   }
+
+ static Future<bool> deleteAccount() async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/delete-account'),
+        headers: await getAuthHeader(),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        await SharedpreferenceUtil.setString('token', "");
+        await SharedpreferenceUtil.setInt('userId', 0);
+        await SharedpreferenceUtil.setString('userName', "");
+        await SharedpreferenceUtil.setString('userPhone', "");
+        debugPrint('Response: ${response.body}');
+        return true;
+      } else {
+        debugPrint('Error-------: ${response.reasonPhrase}');
+        debugPrint('Response: ${response.body}');
+        throw ('${response.reasonPhrase}');
+      }
+    } catch (e) {
+      debugPrint('Error-------: $e');
+      throw 'Something went wrong';
+    }
+  }
 }

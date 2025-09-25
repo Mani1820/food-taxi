@@ -86,125 +86,88 @@ class PopulerRestaurentBuilder extends ConsumerWidget {
           MaterialPageRoute(builder: (context) => MenuListScreen(index: index)),
         );
       },
-      child: Stack(
-        children: [
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: ColorConstant.whiteColor,
-              boxShadow: [
-                BoxShadow(color: ColorConstant.secondaryText, blurRadius: 4),
-              ],
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: ColorConstant.whiteColor,
+          boxShadow: [
+            BoxShadow(color: ColorConstant.secondaryText, blurRadius: 4),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 7,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+              child: SizedBox(
+                height: size.height * 0.28,
+                width: size.width,
+                child: CachedNetworkImage(
+                  imageUrl: hotal.imagePath,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => const Center(
+                    child: CircularProgressIndicator(
+                      color: ColorConstant.primary,
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                ),
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 7,
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
-                  child: SizedBox(
-                    height: size.height * 0.28,
-                    width: size.width,
-                    child: CachedNetworkImage(
-                      imageUrl: hotal.imagePath,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => const Center(
-                        child: CircularProgressIndicator(
-                          color: ColorConstant.primary,
-                        ),
-                      ),
-                      errorWidget: (context, url, error) =>
-                          const Icon(Icons.error),
-                    ),
-                  ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                hotal.name,
+                style: const TextStyle(
+                  color: ColorConstant.primaryText,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: Constants.appFont,
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Text(
-                    hotal.name,
-                    style: const TextStyle(
-                      color: ColorConstant.primaryText,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: Constants.appFont,
-                    ),
-                  ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                hotal.address,
+                style: const TextStyle(
+                  color: ColorConstant.secondaryText,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: Constants.appFont,
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Text(
-                    hotal.address,
-                    style: const TextStyle(
+              ),
+            ),
+            const DottedLine(dashColor: ColorConstant.textfieldBorder),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(10, 0, 10, 5),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.timer_outlined,
+                    color: ColorConstant.secondaryText,
+                    size: 13,
+                  ),
+                  Text(
+                    ' 30-40 mins preparation time',
+                    style: TextStyle(
                       color: ColorConstant.secondaryText,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                       fontFamily: Constants.appFont,
                     ),
                   ),
-                ),
-                const DottedLine(dashColor: ColorConstant.textfieldBorder),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(10, 0, 10, 5),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.timer_outlined,
-                        color: ColorConstant.secondaryText,
-                        size: 13,
-                      ),
-                      Text(
-                        ' 30-40 mins preparation time',
-                        style: TextStyle(
-                          color: ColorConstant.secondaryText,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: Constants.appFont,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: const Color.fromARGB(43, 255, 255, 255),
-              border: Border(
-                top: BorderSide(color: ColorConstant.whiteColor, width: 1.5),
-                left: BorderSide(color: ColorConstant.whiteColor, width: 1.5),
-                right: BorderSide(color: ColorConstant.whiteColor, width: 1.5),
-                bottom: BorderSide(color: ColorConstant.whiteColor, width: 1.5),
+                ],
               ),
-              boxShadow: [
-                BoxShadow(color: ColorConstant.secondaryText, blurRadius: 4),
-              ],
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 10,
-              children: [
-                Icon(Icons.discount, color: ColorConstant.whiteColor),
-                Text(
-                  'Discount',
-                  style: TextStyle(
-                    fontSize: size.height * 0.02,
-                    color: ColorConstant.whiteColor,
-                    fontFamily: Constants.appFont,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
